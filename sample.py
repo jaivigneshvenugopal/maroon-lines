@@ -1,123 +1,140 @@
-#!/usr/bin/env python
-# a minimal text editor to demo PyQt5
-
-# GNU All-Permissive License
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
-
 import sys
-import os
-import pickle
-from PyQt5 import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
+from PyQt5.Qsci import *
 
-class TextEdit(QMainWindow):
+
+class CustomMainWindow(QMainWindow):
     def __init__(self):
-        super(TextEdit, self).__init__()
-        #font = QFont("Courier", 11)
-        #self.setFont(font)
-        self.filename = False
-        self.Ui()
+        super(CustomMainWindow, self).__init__()
 
-    def Ui(self):
-        quitApp = QAction(QIcon('/usr/share/icons/breeze-dark/actions/32/application-exit.svg'), 'Quit', self)
-        saveFile = QAction(QIcon('/usr/share/icons/breeze-dark/actions/32/document-save.svg'), 'Save', self)
-        newFile = QAction('New', self)
-        openFile = QAction('Open', self)
-        copyText = QAction('Copy', self)
-        pasteText = QAction('Yank', self)
-        newFile.setShortcut('Ctrl+N')
-        newFile.triggered.connect(self.newFile)
-        openFile.setShortcut('Ctrl+O')
-        openFile.triggered.connect(self.openFile)
-        saveFile.setShortcut('Ctrl+S')
-        saveFile.triggered.connect(self.saveFile)
-        quitApp.setShortcut('Ctrl+Q')
-        quitApp.triggered.connect(self.close)
-        copyText.setShortcut('Ctrl+K')
-        copyText.triggered.connect(self.copyFunc)
-        pasteText.setShortcut('Ctrl+Y')
-        pasteText.triggered.connect(self.pasteFunc)
-        menubar = self.menuBar()
-        menubar.setNativeMenuBar(True)
-        menuFile = menubar.addMenu('&File')
-        menuFile.addAction(newFile)
-        menuFile.addAction(openFile)
-        menuFile.addAction(saveFile)
-        menuFile.addAction(quitApp)
-        menuEdit = menubar.addMenu('&Edit')
-        menuEdit.addAction(copyText)
-        menuEdit.addAction(pasteText)
-        toolbar = self.addToolBar('Toolbar')
-        toolbar.addAction(quitApp)
-        toolbar.addAction(saveFile)
-        self.text = QTextEdit(self)
-        self.setCentralWidget(self.text)
-        self.setMenuWidget(menubar)
-        self.setMenuBar(menubar)
-        self.setGeometry(200,200,480,320)
-        self.setWindowTitle('TextEdit')
+        # -------------------------------- #
+        #           Window setup           #
+        # -------------------------------- #
+
+        # 1. Define the geometry of the main window
+        # ------------------------------------------
+        self.setGeometry(300, 300, 800, 400)
+        self.setWindowTitle("QScintilla Test")
+
+        # 2. Create frame and layout
+        # ---------------------------
+        self.__frm = QFrame(self)
+        self.__frm.setStyleSheet("QWidget { background-color: #ffeaeaea }")
+        self.__lyt = QVBoxLayout()
+        self.__frm.setLayout(self.__lyt)
+        self.setCentralWidget(self.__frm)
+        self.__myFont = QFont()
+        self.__myFont.setPointSize(14)
+
+        # 3. Place a button
+        # ------------------
+        self.__btn = QPushButton("Qsci")
+        self.__btn.setFixedWidth(50)
+        self.__btn.setFixedHeight(50)
+        self.__btn.clicked.connect(self.__btn_action)
+        self.__btn.setFont(self.__myFont)
+        self.__lyt.addWidget(self.__btn)
+
+        # -------------------------------- #
+        #     QScintilla editor setup      #
+        # -------------------------------- #
+
+        # ! Make instance of QSciScintilla class!
+        # ----------------------------------------
+        self.__editor = QsciScintilla()
+        self.__editor.setText("This\n")         # Line 1
+        self.__editor.append("is\n")            # Line 2
+        self.__editor.append("a\n")             # Line 3
+        self.__editor.append("QScintilla\n")    # Line 4
+        self.__editor.append("test\n")          # Line 5
+        self.__editor.append("program\n")       # Line 6
+        self.__editor.append("to\n")            # Line 7
+        self.__editor.append("illustrate\n")    # Line 8
+        self.__editor.append("some\n")          # Line 9
+        self.__editor.append("basic\n")         # Line 10
+        self.__editor.append("functions.")      # Line 11
+        self.__editor.setLexer(None)
+        self.__editor.setUtf8(True)             # Set encoding to UTF-8
+        self.__editor.setFont(self.__myFont)
+
+        # 1. Text wrapping
+        # -----------------
+        self.__editor.setWrapMode(QsciScintilla.WrapWord)
+        self.__editor.setWrapVisualFlags(QsciScintilla.WrapFlagByText)
+        self.__editor.setWrapIndentMode(QsciScintilla.WrapIndentIndented)
+
+        # 2. End-of-line mode
+        # --------------------
+        self.__editor.setEolMode(QsciScintilla.EolWindows)
+        self.__editor.setEolVisibility(False)
+
+        # 3. Indentation
+        # ---------------
+        self.__editor.setIndentationsUseTabs(False)
+        self.__editor.setTabWidth(4)
+        self.__editor.setIndentationGuides(True)
+        self.__editor.setTabIndents(True)
+        self.__editor.setAutoIndent(True)
+
+        # 4. Caret
+        # ---------
+        self.__editor.setCaretForegroundColor(QColor("#ff0000ff"))
+        self.__editor.setCaretLineVisible(True)
+        self.__editor.setCaretLineBackgroundColor(QColor("#1f0000ff"))
+        self.__editor.setCaretWidth(2)
+
+        # 5. Margins
+        # -----------
+        # Margin 0 = Line nr margin
+        self.__editor.setMarginType(0, QsciScintilla.NumberMargin)
+        self.__editor.setMarginWidth(0, "0000")
+        self.__editor.setMarginsForegroundColor(QColor("#ff888888"))
+
+        # Margin 1 = Symbol margin
+        self.__editor.setMarginType(1, QsciScintilla.SymbolMargin)
+        self.__editor.setMarginWidth(1, "00000")
+        sym_0 = QImage("green_dot.png").scaled(QSize(16, 16))
+        sym_1 = QImage("green_arrow.png").scaled(QSize(16, 16))
+        sym_2 = QImage("red_dot.png").scaled(QSize(16, 16))
+        sym_3 = QImage("red_arrow.png").scaled(QSize(16, 16))
+
+        self.__editor.markerDefine(sym_0, 0)
+        self.__editor.markerDefine(sym_1, 1)
+        self.__editor.markerDefine(sym_2, 2)
+        self.__editor.markerDefine(sym_3, 3)
+
+        self.__editor.setMarginMarkerMask(1, 0b1111)
+
+        # Display a few symbols, and keep their handles stored
+        handle_01 = self.__editor.markerAdd(0, 0)   # Green dot on line 0+1
+        handle_02 = self.__editor.markerAdd(4, 0)   # Green dot on line 4+1
+        handle_03 = self.__editor.markerAdd(5, 0)   # Green dot on line 5+1
+        handle_04 = self.__editor.markerAdd(8, 3)   # Red arrow on line 8+1
+        handle_05 = self.__editor.markerAdd(9, 2)   # Red dot on line 9+1
+
+
+        # ! Add editor to layout !
+        # -------------------------
+        self.__lyt.addWidget(self.__editor)
         self.show()
 
-    def copyFunc(self):
-        self.text.copy()
+    ''''''
 
-    def pasteFunc(self):
-        self.text.paste()
+    def __btn_action(self):
+        print("Hello World!")
 
-    def unSaved(self):
-        destroy = self.text.document().isModified()
-        print(destroy)
+    ''''''
 
-        if destroy == False:
-            return False
-        else:
-            detour = QMessageBox.question(self,
-                            "Hold your horses.",
-                            "File has unsaved changes. Save now?",
-                            QMessageBox.Yes|QMessageBox.No|
-                            QMessageBox.Cancel)
-            if detour == QMessageBox.Cancel:
-                return True
-            elif detour == QMessageBox.No:
-                return False
-            elif detour == QMessageBox.Yes:
-                return self.saveFile()
 
-        return True
-
-    def saveFile(self):
-        self.filename = QFileDialog.getSaveFileName(self, 'Save File', os.path.expanduser('~'))
-        f = self.filename[0]
-        with open(f, "w") as CurrentFile:
-            CurrentFile.write(self.text.toPlainText() )
-        CurrentFile.close()
-
-    def newFile(self):
-        if not self.unSaved():
-            self.text.clear()
-
-    def openFile(self):
-        filename, _ = QFileDialog.getOpenFileName(self, "Open File", '', "All Files (*)")
-        try:
-            self.text.setText(open(filename).read())
-        except:
-            True
-
-    def closeEvent(self, event):
-        if self.unSaved():
-            event.ignore()
-        else:
-            exit
-
-def main():
-    app = QApplication(sys.argv)
-    editor = TextEdit()
-    sys.exit(app.exec_())
+''' End Class '''
 
 if __name__ == '__main__':
-    main()
+    app = QApplication(sys.argv)
+    QApplication.setStyle(QStyleFactory.create('Fusion'))
+    myGUI = CustomMainWindow()
+
+    sys.exit(app.exec_())
+
+''''''
