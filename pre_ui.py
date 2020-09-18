@@ -2,7 +2,7 @@ import sys
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
-from PyQt5.Qsci import *
+import qutepart
 
 
 class UI(QMainWindow):
@@ -19,13 +19,18 @@ class UI(QMainWindow):
 
     # Instantiate editor
     def configure_editor(self):
-        self.__editor = QsciScintilla()
-        self.__editor.setUtf8(True)  # Set encoding to UTF-8
-
-        self.configure_indentations()
-        self.configure_margins()
-        self.configure_lexers()
+        self.__editor = qutepart.Qutepart()
+        # self.configure_font()
+        # self.configure_indentations()
+        # self.configure_margins()
+        # self.configure_lexers()
         self.setCentralWidget(self.__editor)
+
+    def configure_font(self):
+        self.__font = QFont()
+        self.__font.setFamily('Fira Code')
+        self.__font.setPointSize(16)
+        self.__editor.setFont((self.__font))
 
     # Set indentation configurations
     def configure_indentations(self):
@@ -36,12 +41,13 @@ class UI(QMainWindow):
 
     # Set margin to number and set length of margin
     def configure_margins(self):
-        self.__editor.setMarginWidth(0, "000")
+        self.__editor.setMarginWidth(0, "00")
         self.__editor.setMarginType(0, self.__editor.NumberMargin)
 
     # Set Lexer
     def configure_lexers(self):
         self.__lexer = QsciLexerPython(self.__editor)
+        self.__lexer.setDefaultFont(self.__font)
         self.__editor.setLexer(self.__lexer)
 
 
