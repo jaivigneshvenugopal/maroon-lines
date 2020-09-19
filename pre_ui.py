@@ -8,6 +8,7 @@ import qutepart
 class UI(QMainWindow):
     def __init__(self):
         super(QMainWindow, self).__init__()
+        self.file_path = None
         self.configure_frame()
         self.configure_menubar()
         self.configure_editor()
@@ -17,22 +18,39 @@ class UI(QMainWindow):
         self._menubar = self.menuBar()
         self.__file = self._menubar.addMenu('File')
         self.___new = self.__file.addAction('New')
+        self.___new.setShortcut("Ctrl+N")
         self.___open = self.__file.addAction('Open')
+        self.___open.setShortcut("Ctrl+O")
         self.___save = self.__file.addAction('Save')
         self.___save_as = self.__file.addAction('Save As...')
+        self.___save_as.setShortcut("Ctrl+S")
         self.___exit = self.__file.addAction('Exit')
 
         self.configure_menubar_connections()
 
     def configure_menubar_connections(self):
-        self.___save.triggered.connect(self.handle_save_action)
+        self.___save_as.triggered.connect(self.handle_save_as_action)
+        self.___open.triggered.connect(self.handle_open_action)
 
-    def handle_save_action(self):
-        name = QFileDialog.getSaveFileName(self, 'Save File')
-        text = self.editor.textForSaving()
-        file = open(name[0], 'w')
-        file.write(text)
-        file.close()
+    def handle_open_action(self):
+        file_info = QFileDialog.getOpenFileName(self, 'Open File')
+        name, file_type = file_info[0], file_info[1]
+        if name != '':
+            self.file_path = name
+            file = open(name, 'r')
+            with file:
+                text = file.read()
+                self.editor.text = text
+
+    def handle_save_as_action(self):
+        file_info = QFileDialog.getSaveFileName(self, 'Save As...')
+        name, file_type = file_info[0], file_info[1]
+
+        if name != '':
+            text = self.editor.textForSaving()
+            file = open(name[0], 'w')
+            file.write(text)
+            file.close()
 
     # Define the geometry of the main window
     def configure_frame(self):
