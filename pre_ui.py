@@ -37,7 +37,7 @@ class UI(QMainWindow):
         self. ___exit.triggered.connect(self.handle_exit_action)
 
     def handle_new_action(self):
-        self.editor.file_path = None
+        self.file_path = None
         self.editor.clear()
 
     def handle_open_action(self):
