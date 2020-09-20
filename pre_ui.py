@@ -25,13 +25,20 @@ class UI(QMainWindow):
         self.___save.setShortcut("Ctrl+S")
         self.___save_as = self.__file.addAction('Save As...')
         self.___exit = self.__file.addAction('Exit')
+        self.___exit.setShortcut("Ctrl+W")
 
         self.configure_menubar_connections()
 
     def configure_menubar_connections(self):
+        self.___new.triggered.connect(self.handle_new_action)
         self.___open.triggered.connect(self.handle_open_action)
         self.___save.triggered.connect(self.handle_save_action)
         self.___save_as.triggered.connect(self.handle_save_as_action)
+        self. ___exit.triggered.connect(self.handle_exit_action)
+
+    def handle_new_action(self):
+        self.editor.file_path = None
+        self.editor.clear()
 
     def handle_open_action(self):
         file_info = QFileDialog.getOpenFileName(self, 'Open File')
@@ -62,6 +69,9 @@ class UI(QMainWindow):
             file = open(name, 'w', encoding="utf8")
             file.write(text)
             file.close()
+
+    def handle_exit_action(self):
+        sys.exit()
 
     # Define the geometry of the main window
     def configure_frame(self):
