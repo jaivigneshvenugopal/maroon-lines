@@ -14,6 +14,8 @@ import sys
 
 import zlib
 
+import json
+
 argparser = argparse.ArgumentParser(description="The stupid content tracker")
 argsubparsers = argparser.add_subparsers(title="Commands", dest="command")
 argsubparsers.required = True
@@ -100,6 +102,15 @@ def repo_init(args):
         os.makedirs(repo_dirs)
         with open(os.path.join(repo_dirs, file_name), 'wb') as f:
             f.write(binary_data)
+
+        index = {
+            'root': file_name,
+            file_name: []
+        }
+        index = json.dumps(index)
+        binary_index = zlib.compress(index.encode())
+        with open(os.path.join(repo_dirs, 'index'), 'wb') as f:
+            f.write(binary_index)
     else:
         raise Exception('Repo already exists!')
 
