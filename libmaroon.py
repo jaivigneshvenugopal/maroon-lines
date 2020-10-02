@@ -20,6 +20,7 @@ argparser = argparse.ArgumentParser(description="The stupid content tracker")
 argsubparsers = argparser.add_subparsers(title="Commands", dest="command")
 argsubparsers.required = True
 
+
 def main(argv=sys.argv[1:]):
     args = argparser.parse_args(argv)
 
@@ -32,6 +33,8 @@ def main(argv=sys.argv[1:]):
     elif args.command == "rev-parse"   : cmd_rev_parse(args)
     elif args.command == "show-ref"    : cmd_show_ref(args)
     elif args.command == "tag"         : cmd_tag(args)
+    elif args.command == "root"        : read_root_object(args)
+
 
 class GitRepository(object):
     """A git repository"""
@@ -90,6 +93,7 @@ def repo_dir(repo, *path, mkdir=False):
     else:
         return None
 
+
 def repo_init(args):
     with open(args.path, 'r') as f:
         data = f.read()
@@ -109,17 +113,28 @@ def repo_init(args):
         }
         index = json.dumps(index)
         binary_index = zlib.compress(index.encode())
-        with open(os.path.join(repo_dirs, 'index'), 'wb') as f:
+        repo_index = './repos/{}/{}/{}'.format(dir_name[0:2], dir_name[2:], 'index')
+        with open(repo_index, 'wb') as f:
             f.write(binary_index)
     else:
         raise Exception('Repo already exists!')
 
-# def retrieve_file(args):
-#     dir_name = hashlib.sha1(args.path.encode()).hexdigest()
-#     repo_dirs = './repos/{}/{}/{}/'.format(dir_name[0:2], dir_name[2:], 'objects')
-#
-#     if os.path.exists(repo_dirs):
 
+def read_root_object(args):
+    dir_name = hashlib.sha1(args.path.encode()).hexdigest()
+    repo_index = './repos/{}/{}/{}'.format(dir_name[0:2], dir_name[2:], 'index')
+    if os.path.exists(repo_index):
+        with open(repo_index, 'rb') as f:
+            binary_index = f.read()
+            index = zlib.decompress(binary_index)
+            index = json.loads(index)
+            root_filename = index['root']
+            root_object = './repos/{}/{}/objects/{}'.format(dir_name[0:2], dir_name[2:], root_filename)
+            with open(root_object, 'rb') as f:
+                data = zlib.decompress(f.read())
+                print(data.decode())
+    else:
+        raise Exception('Repo does not exist!')
 
 
 def repo_create(path):
@@ -174,6 +189,14 @@ argsp.add_argument("path",
                    nargs="?",
                    default=".",
                    help="Where to create the repository.")
+
+argsp = argsubparsers.add_parser("root", help="Read the latest object.")
+
+argsp.add_argument("path",
+                   metavar="directory",
+                   nargs="?",
+                   default=".",
+                   help="Where to find the repository.")
 
 def cmd_init(args):
     repo_create(args.path)
