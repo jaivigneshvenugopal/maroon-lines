@@ -34,14 +34,6 @@ argsp.add_argument("path",
                    help="Where to find the repository.")
 
 
-def main(argv=sys.argv[1:]):
-    args = argparser.parse_args(argv)
-
-    if   args.command == "init"        : repo_init(args)
-    elif args.command == "root"        : read_root_object(args)
-    elif args.command == 'append'      : append_object(args, None)
-
-
 def repo_init(path):
     with open(path, 'r') as f:
         data = f.read()
@@ -58,7 +50,7 @@ def repo_init(path):
         index = {
             'root': file_name,
             'current': file_name,
-            file_name: set()
+            file_name: []
         }
         index = json.dumps(index)
         binary_index = zlib.compress(index.encode())
@@ -67,32 +59,6 @@ def repo_init(path):
             f.write(binary_index)
     else:
         raise Exception('Repo already exists!')
-
-
-def read_root_object(args):
-    dir_name = hashlib.sha1(args.path.encode()).hexdigest()
-    repo_index = './repos/{}/{}/{}'.format(dir_name[0:2], dir_name[2:], 'index')
-    if os.path.exists(repo_index):
-        with open(repo_index, 'rb') as f:
-            binary_index = f.read()
-            index = zlib.decompress(binary_index)
-            index = json.loads(index)
-            root_filename = index['root']
-            root_object = './repos/{}/{}/objects/{}'.format(dir_name[0:2], dir_name[2:], root_filename)
-            with open(root_object, 'rb') as f:
-                data = zlib.decompress(f.read())
-                print(data.decode())
-    else:
-        raise Exception('Repo does not exist!')
-
-
-def get_current_file_hash(path):
-    index = repo_index(path)
-    return index['current']
-
-
-def get_hash(data):
-    return hashlib.sha1(data.encode()).hexdigest()
 
 
 def repo_exists(path):
@@ -146,9 +112,18 @@ def write_repo_object(path, obj):
 def append_object(path, file_hash, parent):
     index = repo_index(path)
     if parent != file_hash:
-        index[parent].add(file_hash)
+        index[parent].append(file_hash)
         index['current'] = file_hash
         if file_hash not in index:
-            index[file_hash] = set()
+            index[file_hash] = []
         write_repo_index(path, index)
         write_repo_object(path, file_hash)
+
+
+def get_current_file_hash(path):
+    index = repo_index(path)
+    return index['current']
+
+
+def get_hash(data):
+    return hashlib.sha1(data.encode()).hexdigest()

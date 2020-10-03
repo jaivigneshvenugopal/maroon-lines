@@ -47,11 +47,10 @@ class UI(QMainWindow):
         name, file_type = str(file_info[0]), file_info[1]
         if name != '':
             self.file_path = name
-            file = open(name, 'r', encoding="utf8")
-            with file:
-                text = file.read()
+            self.current_file_hash = marooncontrol.get_current_file_hash(self.file_path)
+            with open(name, 'r', encoding="utf8") as f:
+                text = f.read()
                 self.editor.text = text
-                file.close()
 
     def handle_save_action(self):
         if self.file_path:
