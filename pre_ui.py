@@ -47,7 +47,8 @@ class UI(QMainWindow):
         name, file_type = str(file_info[0]), file_info[1]
         if name != '':
             self.file_path = name
-            self.current_file_hash = marooncontrol.get_current_file_hash(self.file_path)
+            if marooncontrol.repo_exists(self.file_path):
+                self.current_file_hash = marooncontrol.get_current_file_hash(self.file_path)
             with open(name, 'r', encoding="utf8") as f:
                 text = f.read()
                 self.editor.text = text
@@ -73,7 +74,6 @@ class UI(QMainWindow):
                 f.write(text)
             marooncontrol.repo_init(self.file_path)
             self.current_file_hash = marooncontrol.get_current_file_hash(self.file_path)
-
 
     def handle_exit_action(self):
         sys.exit()

@@ -92,7 +92,7 @@ def repo_index_path(path):
 
 def repo_objects_path(path):
     repo = repo_path(path)
-    repo_objects_dir = os.path.join(repo, 'objects/')
+    repo_objects_dir = os.path.join(repo, 'objects')
     return repo_objects_dir
 
 
