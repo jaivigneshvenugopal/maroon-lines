@@ -1,19 +1,11 @@
 import argparse
-
 import collections
-
 import configparser
-
 import hashlib
-
 import os
-
 import re
-
 import sys
-
 import zlib
-
 import json
 
 argparser = argparse.ArgumentParser(description="The stupid content tracker")
@@ -30,10 +22,9 @@ def main(argv=sys.argv[1:]):
     elif args.command == "init"        : repo_init(args)
     elif args.command == "log"         : cmd_log(args)
     elif args.command == "ls-tree"     : cmd_ls_tree(args)
-    elif args.command == "rev-parse"   : cmd_rev_parse(args)
-    elif args.command == "show-ref"    : cmd_show_ref(args)
     elif args.command == "tag"         : cmd_tag(args)
     elif args.command == "root"        : read_root_object(args)
+    elif args.command == 'append'      : append_object(args, None)
 
 
 class GitRepository(object):
@@ -109,6 +100,7 @@ def repo_init(args):
 
         index = {
             'root': file_name,
+            'current': file_name,
             file_name: []
         }
         index = json.dumps(index)
@@ -135,6 +127,46 @@ def read_root_object(args):
                 print(data.decode())
     else:
         raise Exception('Repo does not exist!')
+
+
+def append_object(args, data, parent=None):
+    index = repo_index(args.path)
+    file_name = hashlib.sha1(data.encode()).hexdigest()
+    if parent:
+        if parent in index:
+            index[parent].append(file_name)
+        else:
+            index[parent] = []
+
+
+def repo_exists(path):
+    dir_name = hashlib.sha1(path.encode()).hexdigest()
+    repo_full_path = './repos/{}/{}'.format(dir_name[0:2], dir_name[2:])
+    return os.path.exists(repo_full_path)
+
+
+def repo_full_path(path):
+    if repo_exists(path):
+        dir_name = hashlib.sha1(path.encode()).hexdigest()
+        return './repos/{}/{}'.format(dir_name[0:2], dir_name[2:])
+    else:
+        raise Exception('Repo does not exist!')
+
+
+def repo_index(path):
+    repo = repo_full_path(path)
+    index_path = os.path.join(repo, 'index')
+    with open(index_path, 'rb') as f:
+        binary_index = f.read()
+        index = zlib.decompress(binary_index)
+        index = json.loads(index)
+        return index
+
+
+def repo_objects(path):
+    repo = repo_full_path(path)
+    repo_objects_dir = os.path.join(repo, 'objects/')
+    return repo_objects_dir
 
 
 def repo_create(path):
@@ -191,7 +223,13 @@ argsp.add_argument("path",
                    help="Where to create the repository.")
 
 argsp = argsubparsers.add_parser("root", help="Read the latest object.")
+argsp.add_argument("path",
+                   metavar="directory",
+                   nargs="?",
+                   default=".",
+                   help="Where to find the repository.")
 
+argsp = argsubparsers.add_parser("append", help="Append the latest object.")
 argsp.add_argument("path",
                    metavar="directory",
                    nargs="?",
