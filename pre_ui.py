@@ -3,12 +3,14 @@ from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 import qutepart
+import marooncontrol
 
 
 class UI(QMainWindow):
     def __init__(self):
         super(QMainWindow, self).__init__()
         self.file_path = None
+        self.current_file_hash = None
         self.configure_frame()
         self.configure_menubar()
         self.configure_editor()
@@ -54,9 +56,11 @@ class UI(QMainWindow):
     def handle_save_action(self):
         if self.file_path:
             text = self.editor.textForSaving()
-            file = open(self.file_path, 'w', encoding="utf8")
-            file.write(text)
-            file.close()
+            with open(self.file_path, 'w', encoding="utf8") as f:
+                f.write(text)
+                file_hash = marooncontrol.get_hash(text)
+                marooncontrol.append_object(self.file_path, file_hash, self.current_file_hash)
+                self.current_file_hash = file_hash
         else:
             self.handle_save_as_action()
 
@@ -66,9 +70,11 @@ class UI(QMainWindow):
         if name != '':
             self.file_path = name
             text = self.editor.textForSaving()
-            file = open(name, 'w', encoding="utf8")
-            file.write(text)
-            file.close()
+            with open(name, 'w', encoding="utf8") as f:
+                f.write(text)
+            marooncontrol.repo_init(self.file_path)
+            self.current_file_hash = marooncontrol.get_current_file_hash(self.file_path)
+
 
     def handle_exit_action(self):
         sys.exit()
