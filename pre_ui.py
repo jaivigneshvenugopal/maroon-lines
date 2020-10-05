@@ -2,6 +2,7 @@ import sys
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
+from graph import PrettyWidget
 import qutepart
 import marooncontrol
 
@@ -11,9 +12,14 @@ class UI(QMainWindow):
         super(QMainWindow, self).__init__()
         self.file_path = None
         self.current_file_hash = None
+
+        self.layout = None
+        self.editor = None
         self.configure_frame()
+        self.configure_layout()
         self.configure_menubar()
         self.configure_editor()
+        self.configure_graph()
         self.show()
 
     def configure_menubar(self):
@@ -83,13 +89,22 @@ class UI(QMainWindow):
         self.setGeometry(500, 250, 1000, 500)
         self.setWindowTitle("Maroon Lines")
 
+    def configure_layout(self):
+        self.layout = QHBoxLayout()
+        central_widget = QWidget()
+        central_widget.setLayout(self.layout)
+        self.setCentralWidget(central_widget)
+
     # Instantiate editor
     def configure_editor(self):
         self.editor = qutepart.Qutepart()
         self.editor.currentLineColor = None
         self.editor.drawIncorrectIndentation = False
         self.editor.setFont(QFont('Fire Code', 14))
-        self.setCentralWidget(self.editor)
+        self.layout.addWidget(self.editor)
+
+    def configure_graph(self):
+        self.layout.addWidget(PrettyWidget())
 
 
 if __name__ == '__main__':
