@@ -15,6 +15,7 @@ class UI(QMainWindow):
 
         self.layout = None
         self.editor = None
+        self.graph = PrettyWidget()
         self.configure_frame()
         self.configure_layout()
         self.configure_menubar()
@@ -55,6 +56,7 @@ class UI(QMainWindow):
             self.file_path = name
             if marooncontrol.repo_exists(self.file_path):
                 self.current_file_hash = marooncontrol.get_current_file_hash(self.file_path)
+                self.graph.render_graph(marooncontrol.repo_index(self.file_path))
             with open(name, 'r', encoding="utf8") as f:
                 text = f.read()
                 self.editor.text = text
@@ -67,6 +69,7 @@ class UI(QMainWindow):
                 file_hash = marooncontrol.get_hash(text)
                 marooncontrol.append_object(self.file_path, file_hash, self.current_file_hash)
                 self.current_file_hash = file_hash
+                self.graph.render_graph(marooncontrol.repo_index(self.file_path))
         else:
             self.handle_save_as_action()
 
@@ -104,7 +107,7 @@ class UI(QMainWindow):
         self.layout.addWidget(self.editor)
 
     def configure_graph(self):
-        self.layout.addWidget(PrettyWidget())
+        self.layout.addWidget(self.graph)
 
 
 if __name__ == '__main__':

@@ -7,54 +7,28 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as Navigatio
 import networkx as nx
 import marooncontrol
 
+
 class PrettyWidget(QWidget):
 
-    NumButtons = ['plot3']
-
     def __init__(self):
-        super(PrettyWidget, self).__init__()        
+        super(PrettyWidget, self).__init__()
         self.index = None
-        font = QFont()
-        font.setPointSize(16)
-        self.initUI()
-
-    def initUI(self):
-        self.index = marooncontrol.repo_index('/home/jaivigneshvenugopal/code/maroon-lines/vig')
-        self.setGeometry(100, 100, 800, 600)
-        self.center()
-        self.setWindowTitle('S Plot')
-
-        grid = QGridLayout()
-        self.setLayout(grid)
-        self.createVerticalGroupBox()
-
-        buttonLayout = QVBoxLayout()
-        buttonLayout.addWidget(self.verticalGroupBox)
-
         self.figure = plt.figure()
-        self.canvas = FigureCanvas(self.figure)        
-        grid.addWidget(self.canvas, 0, 1, 7, 7)
-        grid.addLayout(buttonLayout, 0, 0)
+        self.canvas = FigureCanvas(self.figure)
 
+        self.configure_layout()
+
+    def configure_layout(self):
+        grid = QHBoxLayout()
+        grid.addWidget(self.canvas)
+        self.setLayout(grid)
         self.show()
 
+    def render_graph(self, index):
+        self.index = index
+        eval('self.draw_graph()')
 
-    def createVerticalGroupBox(self):
-        self.verticalGroupBox = QGroupBox()
-
-        layout = QVBoxLayout()
-        i = self.NumButtons[0]
-        button = QPushButton(i)
-        button.setObjectName(i)
-        layout.addWidget(button)
-        layout.setSpacing(10)
-        self.verticalGroupBox.setLayout(layout)
-        button.clicked.connect(self.submitCommand)
-
-    def submitCommand(self):
-        eval('self.' + str(self.sender().objectName()) + '()')
-
-    def plot3(self):
+    def draw_graph(self):
         self.figure.clf()
         B = nx.Graph()
         edges = []
@@ -70,11 +44,6 @@ class PrettyWidget(QWidget):
         nx.draw(B, arrows=True)
         self.canvas.draw_idle()
 
-    def center(self):
-        qr = self.frameGeometry()
-        cp = QDesktopWidget().availableGeometry().center()
-        qr.moveCenter(cp)
-        self.move(qr.topLeft())
 
 if __name__ == '__main__':
     import sys  
