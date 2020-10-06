@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from graph import PrettyWidget
 import qutepart
-import marooncontrol
+import control
 
 
 class UI(QMainWindow):
@@ -54,9 +54,9 @@ class UI(QMainWindow):
         name, file_type = str(file_info[0]), file_info[1]
         if name != '':
             self.file_path = name
-            if marooncontrol.repo_exists(self.file_path):
-                self.current_file_hash = marooncontrol.get_current_file_hash(self.file_path)
-                self.graph.render_graph(marooncontrol.repo_index(self.file_path))
+            if control.repo_exists(self.file_path):
+                self.current_file_hash = control.get_current_file_hash(self.file_path)
+                self.graph.render_graph(control.repo_index(self.file_path))
             with open(name, 'r', encoding="utf8") as f:
                 text = f.read()
                 self.editor.text = text
@@ -66,10 +66,10 @@ class UI(QMainWindow):
             text = self.editor.textForSaving()
             with open(self.file_path, 'w', encoding="utf8") as f:
                 f.write(text)
-                file_hash = marooncontrol.get_hash(text)
-                marooncontrol.append_object(self.file_path, file_hash, self.current_file_hash)
-                self.current_file_hash = file_hash
-                self.graph.render_graph(marooncontrol.repo_index(self.file_path))
+                file_hash = control.get_hash(text)
+                if control.append_object(self.file_path, file_hash, self.current_file_hash):
+                    self.current_file_hash = file_hash
+                    self.graph.render_graph(control.repo_index(self.file_path))
         else:
             self.handle_save_as_action()
 
@@ -81,8 +81,9 @@ class UI(QMainWindow):
             text = self.editor.textForSaving()
             with open(name, 'w', encoding="utf8") as f:
                 f.write(text)
-            marooncontrol.repo_init(self.file_path)
-            self.current_file_hash = marooncontrol.get_current_file_hash(self.file_path)
+            control.repo_init(self.file_path)
+            self.current_file_hash = control.get_current_file_hash(self.file_path)
+            self.graph.render_graph(control.repo_index(self.file_path))
 
     def handle_exit_action(self):
         sys.exit()

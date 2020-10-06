@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 import networkx as nx
-import marooncontrol
+import control
 
 
 class PrettyWidget(QWidget):
@@ -30,7 +30,7 @@ class PrettyWidget(QWidget):
 
     def draw_graph(self):
         self.figure.clf()
-        B = nx.Graph()
+        B = nx.DiGraph()
         edges = []
         nodes = []
         for key, values in self.index.items():

@@ -118,6 +118,8 @@ def append_object(path, file_hash, parent):
             index[file_hash] = []
         write_repo_index(path, index)
         write_repo_object(path, file_hash)
+        return True
+    return False
 
 
 def get_current_file_hash(path):
