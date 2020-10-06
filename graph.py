@@ -30,18 +30,28 @@ class PrettyWidget(QWidget):
 
     def draw_graph(self):
         self.figure.clf()
-        B = nx.DiGraph()
+        graph = nx.DiGraph()
         edges = []
         nodes = []
+        root = self.index['root']
+        curr = self.index['current']
+        colors = []
         for key, values in self.index.items():
             if key != 'root' and key != 'current':
                 nodes.append(key)
+                if key == root:
+                    colors.append('#fed8b1')
+                elif key == curr:
+                    colors.append('#32CD32')
+                else:
+                    colors.append('#add8e6')
                 for val in values:
                     edges.append((key, val))
 
-        B.add_nodes_from(nodes)
-        B.add_edges_from(edges)
-        nx.draw(B, arrows=True)
+        graph.add_nodes_from(nodes)
+        graph.add_edges_from(edges)
+        pos = nx.circular_layout(graph)
+        nx.draw(graph, pos=pos, node_color=colors, arrows=True)
         self.canvas.draw_idle()
 
 
