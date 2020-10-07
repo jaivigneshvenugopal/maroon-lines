@@ -16,6 +16,7 @@ class UI(QMainWindow):
         self.layout = None
         self.editor = None
         self.graph = PrettyWidget()
+
         self.configure_frame()
         self.configure_layout()
         self.configure_menubar()
@@ -108,7 +109,11 @@ class UI(QMainWindow):
         self.layout.addWidget(self.editor)
 
     def configure_graph(self):
+        self.graph.current_node.connect(self.change_here)
         self.layout.addWidget(self.graph)
+
+    def change_here(self, text):
+        print(text)
 
 
 if __name__ == '__main__':

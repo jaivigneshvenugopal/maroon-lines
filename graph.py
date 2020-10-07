@@ -1,3 +1,4 @@
+import PyQt5
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
@@ -12,6 +13,7 @@ from grave.style import use_attributes
 
 
 class PrettyWidget(QWidget):
+    current_node = PyQt5.QtCore.pyqtSignal(str)
 
     def __init__(self):
         super(PrettyWidget, self).__init__()
@@ -41,9 +43,9 @@ class PrettyWidget(QWidget):
                 graph.nodes[self.curr]['color'] = self.middle_color
             self.curr = node
 
-
         event.artist.stale = True
         event.artist.figure.canvas.draw_idle()
+        self.current_node.emit(self.curr)
 
     def configure_layout(self):
         grid = QHBoxLayout()
