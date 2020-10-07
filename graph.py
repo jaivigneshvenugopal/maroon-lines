@@ -18,31 +18,30 @@ class PrettyWidget(QWidget):
         self.index = None
         self.figure = plt.figure()
         self.canvas = FigureCanvas(self.figure)
-        self.canvas.mpl_connect('pick_event', self.hilighter)
+        self.canvas.mpl_connect('pick_event', self.pick_event)
+        self.root = None
+        self.curr = None
+        self.root_color = 'C1'
+        self.curr_color = '#32CD32'
+        self.middle_color = '#add8e6'
         self.configure_layout()
 
-    def hilighter(self, event):
+    def pick_event(self, event):
         # if we did not hit a node, bail
         if not hasattr(event, 'nodes') or not event.nodes:
             return
 
         # pull out the graph,
         graph = event.artist.graph
-
-        # clear any non-default color on nodes
-        for node, attributes in graph.nodes.data():
-            attributes.pop('color', None)
-
-        for u, v, attributes in graph.edges.data():
-            attributes.pop('width', None)
-
         for node in event.nodes:
-            graph.nodes[node]['color'] = 'C1'
+            graph.nodes[node]['color'] = self.curr_color
+            if self.curr == self.root:
+                graph.nodes[self.curr]['color'] = self.root_color
+            else:
+                graph.nodes[self.curr]['color'] = self.middle_color
+            self.curr = node
 
-            for edge_attribute in graph[node].values():
-                edge_attribute['width'] = 3
 
-        # update the screen
         event.artist.stale = True
         event.artist.figure.canvas.draw_idle()
 
@@ -61,8 +60,8 @@ class PrettyWidget(QWidget):
         graph = nx.DiGraph()
         edges = []
         nodes = []
-        root = self.index['root']
-        curr = self.index['current']
+        self.root = self.index['root']
+        self.curr = self.index['current']
 
         for key, values in self.index.items():
             if key != 'root' and key != 'current':
@@ -73,12 +72,12 @@ class PrettyWidget(QWidget):
         graph.add_nodes_from(nodes)
         graph.add_edges_from(edges)
         for node, node_attrs in graph.nodes(data=True):
-            if node == root:
-                node_attrs['color'] = '#fed8b1'
-            elif node == curr:
-                node_attrs['color'] = '#32CD32'
+            if node == self.root:
+                node_attrs['color'] = self.root_color
+            elif node == self.curr:
+                node_attrs['color'] = self.curr_color
             else:
-                node_attrs['color'] = '#add8e6'
+                node_attrs['color'] = self.middle_color
             node_attrs['size'] = 200
 
         plot = plot_network(graph, layout="spectral", node_style=use_attributes(),
