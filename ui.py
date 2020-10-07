@@ -89,6 +89,11 @@ class UI(QMainWindow):
     def handle_exit_action(self):
         sys.exit()
 
+    def handle_setting_node(self, file_hash):
+        control.set_object(self.file_path, file_hash)
+        self.current_file_hash = file_hash
+        self.editor.text = control.read_repo_object(self.file_path, file_hash)
+
     # Define the geometry of the main window
     def configure_frame(self):
         self.setGeometry(500, 250, 1000, 500)
@@ -109,11 +114,8 @@ class UI(QMainWindow):
         self.layout.addWidget(self.editor)
 
     def configure_graph(self):
-        self.graph.current_node.connect(self.change_here)
+        self.graph.current_node.connect(self.handle_setting_node)
         self.layout.addWidget(self.graph)
-
-    def change_here(self, text):
-        print(text)
 
 
 if __name__ == '__main__':

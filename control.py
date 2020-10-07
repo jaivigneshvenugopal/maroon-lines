@@ -96,6 +96,16 @@ def repo_objects_path(path):
     return repo_objects_dir
 
 
+def read_repo_object(path, file_hash):
+    text = None
+    with open(os.path.join(repo_objects_path(path), file_hash), 'rb') as f:
+        binary_data = f.read()
+        encoded_data = zlib.decompress(binary_data)
+        text = encoded_data.decode()
+    return text
+
+
+
 def write_repo_index(path, json_data):
     with open(repo_index_path(path), 'wb') as f:
         data = json.dumps(json_data)
@@ -120,6 +130,12 @@ def append_object(path, file_hash, parent):
         write_repo_object(path, file_hash)
         return True
     return False
+
+
+def set_object(path, file_hash):
+    index = repo_index(path)
+    index['current'] = file_hash
+    write_repo_index(path, index)
 
 
 def get_current_file_hash(path):
