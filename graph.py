@@ -26,6 +26,8 @@ class PrettyWidget(QWidget):
         self.root_color = 'C1'
         self.curr_color = '#32CD32'
         self.middle_color = '#add8e6'
+        self.root_curr_node_size = 250
+        self.default_node_size = 200
         self.configure_layout()
 
     def pick_event(self, event):
@@ -37,10 +39,13 @@ class PrettyWidget(QWidget):
         graph = event.artist.graph
         for node in event.nodes:
             graph.nodes[node]['color'] = self.curr_color
+            graph.nodes[node]['size'] = self.root_curr_node_size
             if self.curr == self.root:
                 graph.nodes[self.curr]['color'] = self.root_color
+                graph.nodes[self.curr]['size'] = self.root_curr_node_size
             else:
                 graph.nodes[self.curr]['color'] = self.middle_color
+                graph.nodes[self.curr]['size'] = self.default_node_size
             self.curr = node
 
         event.artist.stale = True
@@ -73,25 +78,19 @@ class PrettyWidget(QWidget):
 
         graph.add_nodes_from(nodes)
         graph.add_edges_from(edges)
+        print(len(graph.nodes()))
         for node, node_attrs in graph.nodes(data=True):
             if node == self.root:
                 node_attrs['color'] = self.root_color
+                node_attrs['size'] = self.root_curr_node_size
             elif node == self.curr:
                 node_attrs['color'] = self.curr_color
+                node_attrs['size'] = self.root_curr_node_size
             else:
                 node_attrs['color'] = self.middle_color
-            node_attrs['size'] = 200
+                node_attrs['size'] = self.default_node_size
 
-        plot = plot_network(graph, layout="spectral", node_style=use_attributes(),
+        plot = plot_network(graph, layout='spring', node_style=use_attributes(),
                            edge_style=use_attributes())
         plot.set_picker(10)
         self.canvas.draw_idle()
-
-if __name__ == '__main__':
-    import sys  
-    app = QApplication(sys.argv)
-    app.aboutToQuit.connect(app.deleteLater)
-    app.setStyle(QStyleFactory.create("gtk"))
-    screen = PrettyWidget() 
-    screen.show()   
-    sys.exit(app.exec_())
