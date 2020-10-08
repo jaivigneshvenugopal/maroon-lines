@@ -93,6 +93,8 @@ class UI(QMainWindow):
         control.set_object(self.file_path, file_hash)
         self.current_file_hash = file_hash
         self.editor.text = control.read_repo_object(self.file_path, file_hash)
+        with open(self.file_path, 'w', encoding="utf8") as f:
+            f.write(self.editor.text)
 
     # Define the geometry of the main window
     def configure_frame(self):

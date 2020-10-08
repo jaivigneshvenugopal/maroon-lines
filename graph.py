@@ -11,6 +11,8 @@ import control
 from grave import plot_network
 from grave.style import use_attributes
 
+from IPython import embed
+
 
 class PrettyWidget(QWidget):
     current_node = PyQt5.QtCore.pyqtSignal(str)
@@ -69,16 +71,16 @@ class PrettyWidget(QWidget):
         nodes = []
         self.root = self.index['root']
         self.curr = self.index['current']
+        self.index.pop('root')
+        self.index.pop('current')
 
         for key, values in self.index.items():
-            if key != 'root' and key != 'current':
-                nodes.append(key)
-                for val in values:
-                    edges.append((key, val))
+            nodes.append(key)
+            for val in values:
+                edges.append((key, val))
 
         graph.add_nodes_from(nodes)
         graph.add_edges_from(edges)
-        print(len(graph.nodes()))
         for node, node_attrs in graph.nodes(data=True):
             if node == self.root:
                 node_attrs['color'] = self.root_color
@@ -90,7 +92,33 @@ class PrettyWidget(QWidget):
                 node_attrs['color'] = self.middle_color
                 node_attrs['size'] = self.default_node_size
 
-        plot = plot_network(graph, layout='spring', node_style=use_attributes(),
-                           edge_style=use_attributes())
-        plot.set_picker(10)
+        for u, v, attrs in graph.edges.data():
+            attrs['width'] = 1.5
+
+        plot = plot_network(graph, layout=self.sequential_layout, node_style=use_attributes(), edge_style=use_attributes())
+        plot.set_picker(1)
         self.canvas.draw_idle()
+
+    def sequential_layout(self, graph):
+        pos_y = {}
+        counter = 0
+        for key, values in self.index.items():
+            if key not in pos_y:
+                pos_y[key] = counter
+                counter += 1
+            for val in values:
+                pos_y[val] = counter
+            counter += 1
+
+        pos_x = {
+            self.root: 0
+        }
+        ordered_pos = [i+1 for i in range(1000)]
+        for key, values in self.index.items():
+            counter = pos_x[key]
+            for val in values:
+                pos_x[val] = counter
+                counter = ordered_pos.pop(0)
+        print(pos_x)
+        print(pos_y)
+        return {k: [pos_x[k], pos_y[k]] for i, k in enumerate(graph.nodes.keys())}
