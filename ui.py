@@ -64,11 +64,11 @@ class UI(QMainWindow):
 
     def handle_save_action(self):
         if self.file_path:
-            text = self.editor.textForSaving()
+            data = self.editor.textForSaving()
             with open(self.file_path, 'w', encoding="utf8") as f:
-                f.write(text)
-                file_hash = control.get_hash(text)
-                if control.append_object(self.file_path, file_hash, self.current_file_hash):
+                f.write(data)
+                file_hash = control.get_hash(data)
+                if control.append_object(self.file_path, file_hash, data, self.current_file_hash):
                     self.current_file_hash = file_hash
                     self.graph.render_graph(control.repo_index(self.file_path))
         else:

@@ -113,13 +113,13 @@ def write_repo_index(path, json_data):
         f.write(binary_data)
 
 
-def write_repo_object(path, obj):
-    with open(os.path.join(repo_objects_path(path), obj), 'wb') as f:
-        data = zlib.compress(obj.encode())
+def write_repo_object(path, file_hash, data):
+    with open(os.path.join(repo_objects_path(path), file_hash), 'wb') as f:
+        data = zlib.compress(data.encode())
         f.write(data)
 
 
-def append_object(path, file_hash, parent):
+def append_object(path, file_hash, data, parent):
     index = repo_index(path)
     if parent != file_hash:
         index[parent].append(file_hash)
@@ -127,7 +127,7 @@ def append_object(path, file_hash, parent):
         if file_hash not in index:
             index[file_hash] = []
         write_repo_index(path, index)
-        write_repo_object(path, file_hash)
+        write_repo_object(path, file_hash, data)
         return True
     return False
 
