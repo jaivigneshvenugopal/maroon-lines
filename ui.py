@@ -2,7 +2,7 @@ import sys
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
-from graph import PrettyWidget
+from graph_visualization import GraphVisualization
 import qutepart
 import control
 
@@ -15,7 +15,7 @@ class UI(QMainWindow):
 
         self.layout = None
         self.editor = None
-        self.graph = PrettyWidget()
+        self.graph = GraphVisualization()
 
         self.configure_frame()
         self.configure_layout()

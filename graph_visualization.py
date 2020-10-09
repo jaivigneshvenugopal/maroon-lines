@@ -14,11 +14,11 @@ from grave.style import use_attributes
 from IPython import embed
 
 
-class PrettyWidget(QWidget):
+class GraphVisualization(QWidget):
     current_node = PyQt5.QtCore.pyqtSignal(str)
 
     def __init__(self):
-        super(PrettyWidget, self).__init__()
+        super(GraphVisualization, self).__init__()
         self.index = None
         self.figure = plt.figure()
         self.canvas = FigureCanvas(self.figure)
@@ -103,6 +103,7 @@ class PrettyWidget(QWidget):
         pos_y = {
             self.root: 0
         }
+
         for key, values in self.index.items():
             for val in values:
                 pos_y[val] = pos_y[key] + 1
@@ -110,11 +111,15 @@ class PrettyWidget(QWidget):
         pos_x = {
             self.root: 0
         }
-        next_count = 1
+
         for key, values in self.index.items():
-            counter = pos_x[key]
-            for val in values:
-                pos_x[val] = counter
-                counter = next_count
-                next_count += 1
+            pos_x, _ = self.fill_pos_x(values, pos_x[self.root], pos_x)
+
         return {k: [pos_x[k], pos_y[k]] for i, k in enumerate(graph.nodes.keys())}
+
+    def fill_pos_x(self, values, counter, pos_x):
+        for val in values:
+            if val not in pos_x:
+                pos_x[val] = counter
+                _, counter = self.fill_pos_x(self.index[val], counter, pos_x)
+        return pos_x, counter + 1
