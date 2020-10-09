@@ -100,25 +100,20 @@ class PrettyWidget(QWidget):
         self.canvas.draw_idle()
 
     def sequential_layout(self, graph):
-        pos_y = {}
-        counter = 0
+        pos_y = {
+            self.root: 0
+        }
         for key, values in self.index.items():
-            if key not in pos_y:
-                pos_y[key] = counter
-                counter += 1
             for val in values:
-                pos_y[val] = counter
-            counter += 1
+                pos_y[val] = pos_y[key] + 0.5
 
         pos_x = {
             self.root: 0
         }
-        ordered_pos = [i+1 for i in range(1000)]
+        ordered_pos = [(i+1)/2 for i in range(1000)]
         for key, values in self.index.items():
             counter = pos_x[key]
             for val in values:
                 pos_x[val] = counter
                 counter = ordered_pos.pop(0)
-        print(pos_x)
-        print(pos_y)
         return {k: [pos_x[k], pos_y[k]] for i, k in enumerate(graph.nodes.keys())}
