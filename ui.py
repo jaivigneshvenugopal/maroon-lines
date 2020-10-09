@@ -22,7 +22,7 @@ class UI(QMainWindow):
         self.configure_menubar()
         self.configure_editor()
         self.configure_graph()
-        self.show()
+        self.showMaximized()
 
     def configure_menubar(self):
         self._menubar = self.menuBar()
@@ -103,6 +103,7 @@ class UI(QMainWindow):
 
     def configure_layout(self):
         self.layout = QHBoxLayout()
+        self.layout.setSpacing(0)
         central_widget = QWidget()
         central_widget.setLayout(self.layout)
         self.setCentralWidget(central_widget)
@@ -110,14 +111,15 @@ class UI(QMainWindow):
     # Instantiate editor
     def configure_editor(self):
         self.editor = qutepart.Qutepart()
+        print(self.editor.getContentsMargins())
         self.editor.currentLineColor = None
         self.editor.drawIncorrectIndentation = False
         self.editor.setFont(QFont('Fire Code', 14))
-        self.layout.addWidget(self.editor)
+        self.layout.addWidget(self.editor, 8)
 
     def configure_graph(self):
         self.graph.current_node.connect(self.handle_setting_node)
-        self.layout.addWidget(self.graph)
+        self.layout.addWidget(self.graph, 2)
 
 
 if __name__ == '__main__':

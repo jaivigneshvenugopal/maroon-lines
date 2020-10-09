@@ -14,20 +14,21 @@ from grave.style import use_attributes
 from IPython import embed
 
 
-class GraphVisualization(QWidget):
+class GraphVisualization(QMainWindow):
     current_node = PyQt5.QtCore.pyqtSignal(str)
 
     def __init__(self):
         super(GraphVisualization, self).__init__()
         self.index = None
         self.figure = plt.figure()
+        self.figure.set_facecolor('#FFF7F9')
         self.canvas = FigureCanvas(self.figure)
         self.canvas.mpl_connect('pick_event', self.pick_event)
         self.root = None
         self.curr = None
         self.root_color = 'C1'
-        self.curr_color = '#32CD32'
-        self.middle_color = '#add8e6'
+        self.curr_color = '#50EE06'
+        self.middle_color = '#18B9EA'
         self.root_curr_node_size = 250
         self.default_node_size = 200
         self.configure_layout()
@@ -55,9 +56,7 @@ class GraphVisualization(QWidget):
         self.current_node.emit(self.curr)
 
     def configure_layout(self):
-        grid = QHBoxLayout()
-        grid.addWidget(self.canvas)
-        self.setLayout(grid)
+        self.setCentralWidget(self.canvas)
         self.show()
 
     def render_graph(self, index):
