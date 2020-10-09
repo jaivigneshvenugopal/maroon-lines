@@ -105,15 +105,16 @@ class PrettyWidget(QWidget):
         }
         for key, values in self.index.items():
             for val in values:
-                pos_y[val] = pos_y[key] + 0.5
+                pos_y[val] = pos_y[key] + 1
 
         pos_x = {
             self.root: 0
         }
-        ordered_pos = [(i+1)/2 for i in range(1000)]
+        next_count = 1
         for key, values in self.index.items():
             counter = pos_x[key]
             for val in values:
                 pos_x[val] = counter
-                counter = ordered_pos.pop(0)
+                counter = next_count
+                next_count += 1
         return {k: [pos_x[k], pos_y[k]] for i, k in enumerate(graph.nodes.keys())}
