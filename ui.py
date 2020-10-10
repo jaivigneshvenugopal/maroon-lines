@@ -103,7 +103,6 @@ class UI(QMainWindow):
 
     def configure_layout(self):
         self.layout = QHBoxLayout()
-        self.layout.setSpacing(0)
         central_widget = QWidget()
         central_widget.setLayout(self.layout)
         self.setCentralWidget(central_widget)
@@ -111,7 +110,6 @@ class UI(QMainWindow):
     # Instantiate editor
     def configure_editor(self):
         self.editor = qutepart.Qutepart()
-        print(self.editor.getContentsMargins())
         self.editor.currentLineColor = None
         self.editor.drawIncorrectIndentation = False
         self.editor.setFont(QFont('Fire Code', 14))

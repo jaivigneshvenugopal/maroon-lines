@@ -4,3 +4,7 @@ __pycache__/
 .idea/
 
 repos/
+
+test_ui.py
+
+vig
