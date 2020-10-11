@@ -1,7 +1,9 @@
 import sys
+import PyQt5
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
+from PyQt5.QtCore import *
 from graph_visualization import GraphVisualization
 import qutepart
 import control
@@ -105,6 +107,9 @@ class UI(QMainWindow):
         self.layout = QHBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)
         central_widget = QWidget()
+        palette = central_widget.palette()
+        # palette.setColor(central_widget.backgroundRole(), Qt.red)
+        central_widget.setPalette(palette)
         central_widget.setLayout(self.layout)
         self.setCentralWidget(central_widget)
 
