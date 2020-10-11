@@ -96,6 +96,7 @@ class GraphVisualization(QMainWindow):
 
         plot = plot_network(graph, layout=self.sequential_layout, node_style=use_attributes(), edge_style=use_attributes())
         plot.set_picker(1)
+        plot.axes.set_position([0, 0, 1, 1])
         self.canvas.draw_idle()
 
     def sequential_layout(self, graph):
