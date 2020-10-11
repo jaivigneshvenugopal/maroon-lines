@@ -41,14 +41,14 @@ class GraphVisualization(QMainWindow):
         # pull out the graph,
         graph = event.artist.graph
         for node in event.nodes:
+            if node == self.curr:
+                return
+
             graph.nodes[node]['color'] = self.curr_color
-            graph.nodes[node]['size'] = self.root_curr_node_size
             if self.curr == self.root:
                 graph.nodes[self.curr]['color'] = self.root_color
-                graph.nodes[self.curr]['size'] = self.root_curr_node_size
             else:
                 graph.nodes[self.curr]['color'] = self.middle_color
-                graph.nodes[self.curr]['size'] = self.default_node_size
             self.curr = node
 
         event.artist.stale = True
@@ -83,20 +83,18 @@ class GraphVisualization(QMainWindow):
         for node, node_attrs in graph.nodes(data=True):
             if node == self.root:
                 node_attrs['color'] = self.root_color
-                node_attrs['size'] = self.root_curr_node_size
             elif node == self.curr:
                 node_attrs['color'] = self.curr_color
-                node_attrs['size'] = self.root_curr_node_size
             else:
                 node_attrs['color'] = self.middle_color
-                node_attrs['size'] = self.default_node_size
+            node_attrs['size'] = self.default_node_size
 
         for u, v, attrs in graph.edges.data():
             attrs['width'] = 1.5
 
         plot = plot_network(graph, layout=self.sequential_layout, node_style=use_attributes(), edge_style=use_attributes())
         plot.set_picker(1)
-        plot.axes.set_position([0, 0, 1, 1])
+        plot.axes.set_position([0.02, 0, 0.98, 1])
         self.canvas.draw_idle()
 
     def sequential_layout(self, graph):
