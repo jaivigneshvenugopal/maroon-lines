@@ -103,6 +103,7 @@ class UI(QMainWindow):
 
     def configure_layout(self):
         self.layout = QHBoxLayout()
+        self.layout.setContentsMargins(0, 0, 0, 0)
         central_widget = QWidget()
         central_widget.setLayout(self.layout)
         self.setCentralWidget(central_widget)
