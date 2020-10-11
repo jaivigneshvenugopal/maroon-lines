@@ -8,6 +8,7 @@ from graph_visualization import GraphVisualization
 import qutepart
 import control
 
+from IPython import embed
 
 class UI(QMainWindow):
     def __init__(self):
@@ -28,6 +29,24 @@ class UI(QMainWindow):
 
     def configure_menubar(self):
         self._menubar = self.menuBar()
+        self._menubar.setContentsMargins(0, 0, 0, 0)
+        self._menubar.setStyleSheet("""
+            QMenuBar {
+                background-color: rgb(34, 45, 50);
+                color: rgb(205,215,211);
+                font: 16px;
+            }
+
+            QMenuBar::item {
+                background-color: rgb(34, 45, 50);
+                color: rgb(205,215,211);
+            }
+
+            QMenuBar::item::selected {
+                background-color: rgb(60, 60, 60);
+            }
+        """)
+
         self.__file = self._menubar.addMenu('File')
         self.___new = self.__file.addAction('New')
         self.___new.setShortcut("Ctrl+N")
@@ -104,12 +123,10 @@ class UI(QMainWindow):
         self.setWindowTitle("Maroon Lines")
 
     def configure_layout(self):
-        self.layout = QHBoxLayout()
-        self.layout.setContentsMargins(0, 0, 0, 0)
         central_widget = QWidget()
-        palette = central_widget.palette()
-        # palette.setColor(central_widget.backgroundRole(), Qt.red)
-        central_widget.setPalette(palette)
+        central_widget.setStyleSheet("background-color: #f0b034")
+        self.layout = QHBoxLayout(central_widget)
+        self.layout.setContentsMargins(0, 0, 0, 0)
         central_widget.setLayout(self.layout)
         self.setCentralWidget(central_widget)
 
@@ -118,6 +135,7 @@ class UI(QMainWindow):
         self.editor = qutepart.Qutepart()
         self.editor.currentLineColor = None
         self.editor.drawIncorrectIndentation = False
+        self.editor.setStyleSheet("background-color: #f3f3f3")
         self.editor.setFont(QFont('Fire Code', 14))
         self.layout.addWidget(self.editor, 8)
 
