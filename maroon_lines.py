@@ -1,6 +1,6 @@
 import sys
 import PyQt5
-from PyQt5 import QtWidgets, QtGui
+from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
@@ -138,11 +138,10 @@ class MaroonLines(QMainWindow):
         self.editor.drawIncorrectIndentation = False
         self.editor.setStyleSheet("background-color: #fcfcfc")
         self.editor.setFont(QFont('Fire Code', 14))
-        lna = self.editor.getMargins()[0]
-        font = QFont('Fire Code', 14, )
+        editor_margin = self.editor.getMargins()[0]
+        font = QFont('Fire Code', 14)
         font.setItalic(True)
-        lna.setFont(font)
-        # lna.setStyleSheet("background-color: #33333d")
+        editor_margin.setFont(font)
         self.layout.addWidget(self.editor, 8)
 
     def configure_graph(self):
