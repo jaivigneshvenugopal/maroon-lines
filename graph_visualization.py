@@ -21,14 +21,14 @@ class GraphVisualization(QMainWindow):
         super(GraphVisualization, self).__init__()
         self.index = None
         self.figure = plt.figure()
-        self.figure.set_facecolor('#FFF7F9')
+        self.figure.set_facecolor('#fff0f0')
         self.canvas = FigureCanvas(self.figure)
         self.canvas.mpl_connect('pick_event', self.pick_event)
         self.root = None
         self.curr = None
-        self.root_color = 'C1'
-        self.curr_color = '#50EE06'
-        self.middle_color = '#18B9EA'
+        self.root_color = '#800000'
+        self.curr_color = '#FC2E20'
+        self.middle_color = '#25B0B0'
         self.root_curr_node_size = 250
         self.default_node_size = 200
         self.configure_layout()
