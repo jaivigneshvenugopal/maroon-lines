@@ -140,18 +140,63 @@ class MaroonLines(QMainWindow):
         self.editor.drawIncorrectIndentation = False
         self.editor.setStyleSheet("background-color: #fcfcfc")
         self.editor.setFont(QFont('Fire Code', 14))
+        self.configure_editor_scrollbar()
         editor_margin = self.editor.getMargins()[0]
         font = QFont('Fire Code', 14)
         font.setItalic(True)
         editor_margin.setFont(font)
         editor_margin.setStyleSheet('background-color: #f0f0f0')
-
         self.layout.addWidget(self.editor, 8)
 
     def configure_graph(self):
         self.graph.current_node.connect(self.handle_setting_node)
         self.layout.addWidget(self.graph, 2)
         self.graph.render_graph(None)
+
+    def configure_editor_scrollbar(self):
+        scroll_bar = self.editor.verticalScrollBar()
+        scroll_bar.setStyleSheet(
+            """QScrollBar:vertical {
+                    width: 7px;
+                    margin: 0;
+                    background: #fcfcfc;
+                  }
+
+                  QScrollBar::handle:vertical {
+                    border: 7px solid #d9d9d9;
+                    background: #33333d;
+                    min-height: 10px;
+                  }
+
+                  QScrollBar::add-line:vertical {
+                    height: 0px;
+                  }
+
+                  QScrollBar::sub-line:vertical {
+                    height: 0px;
+                  }
+
+                  QScrollBar::up-arrow:vertical {
+                    border: none;
+                    height: 0px; 
+                    width: 0px;
+                    background: none;
+                    color: none;
+                  }
+
+                  QScrollBar::down-arrow:vertical {
+                    border: none;
+                    height: 0px; 
+                    width: 0px;
+                    background: none;
+                    color: none;                              
+                  }
+                  QScrollBar::add-page:vertical {
+                    height: 0px; 
+                  }
+                  QScrollBar::sub-page:vertical {
+                    height: 0px; 
+                  }""")
 
 
 if __name__ == '__main__':
