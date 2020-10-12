@@ -26,8 +26,9 @@ class GraphVisualization(QMainWindow):
         self.canvas.mpl_connect('pick_event', self.pick_event)
         self.root = None
         self.curr = None
-        self.root_color = '#800000'
-        self.curr_color = '#FC2E20'
+        self.temp_color = '#66ce62'
+        self.root_color = '#006400'
+        self.curr_color = '#d00000'
         self.middle_color = '#25B0B0'
         self.root_curr_node_size = 250
         self.default_node_size = 200
@@ -59,9 +60,27 @@ class GraphVisualization(QMainWindow):
         self.setCentralWidget(self.canvas)
         self.show()
 
-    def render_graph(self, index):
+    def render_graph(self, index=None):
         self.index = index
-        eval('self.draw_graph()')
+        if self.index:
+            eval('self.draw_graph()')
+        else:
+            eval('self.draw_temp_graph()')
+
+    def draw_temp_graph(self):
+        self.figure.clf()
+        graph = nx.DiGraph()
+        nodes = ['temp']
+
+        graph.add_nodes_from(nodes)
+        for _, node_attrs in graph.nodes(data=True):
+            node_attrs['color'] = self.temp_color
+            node_attrs['size'] = self.default_node_size
+
+        plot = plot_network(graph, layout='spring', node_style=use_attributes())
+        plot.set_picker(1)
+        plot.axes.set_position([0.02, 0, 0.98, 1])
+        self.canvas.draw_idle()
 
     def draw_graph(self):
         self.figure.clf()

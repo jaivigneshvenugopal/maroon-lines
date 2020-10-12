@@ -70,7 +70,9 @@ class MaroonLines(QMainWindow):
 
     def handle_new_action(self):
         self.file_path = None
+        self.current_file_hash = None
         self.editor.clear()
+        self.graph.render_graph(None)
 
     def handle_open_action(self):
         file_info = QFileDialog.getOpenFileName(self, 'Open File')
@@ -142,11 +144,14 @@ class MaroonLines(QMainWindow):
         font = QFont('Fire Code', 14)
         font.setItalic(True)
         editor_margin.setFont(font)
+        editor_margin.setStyleSheet('background-color: #f0f0f0')
+
         self.layout.addWidget(self.editor, 8)
 
     def configure_graph(self):
         self.graph.current_node.connect(self.handle_setting_node)
         self.layout.addWidget(self.graph, 2)
+        self.graph.render_graph(None)
 
 
 if __name__ == '__main__':
