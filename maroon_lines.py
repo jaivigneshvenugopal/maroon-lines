@@ -10,7 +10,8 @@ import control
 
 from IPython import embed
 
-class UI(QMainWindow):
+
+class MaroonLines(QMainWindow):
     def __init__(self):
         super(QMainWindow, self).__init__()
         self.file_path = None
@@ -32,13 +33,13 @@ class UI(QMainWindow):
         self._menubar.setContentsMargins(0, 0, 0, 0)
         self._menubar.setStyleSheet("""
             QMenuBar {
-                background-color: rgb(34, 45, 50);
+                background-color: rgb(51, 51, 61);
                 color: rgb(205,215,211);
                 font: 16px;
             }
 
             QMenuBar::item {
-                background-color: rgb(34, 45, 50);
+                background-color: rgb(51, 51, 61);
                 color: rgb(205,215,211);
             }
 
@@ -135,8 +136,13 @@ class UI(QMainWindow):
         self.editor = qutepart.Qutepart()
         self.editor.currentLineColor = None
         self.editor.drawIncorrectIndentation = False
-        self.editor.setStyleSheet("background-color: #f3f3f3")
+        self.editor.setStyleSheet("background-color: #fcfcfc")
         self.editor.setFont(QFont('Fire Code', 14))
+        lna = self.editor.getMargins()[0]
+        font = QFont('Fire Code', 14, )
+        font.setItalic(True)
+        lna.setFont(font)
+        # lna.setStyleSheet("background-color: #33333d")
         self.layout.addWidget(self.editor, 8)
 
     def configure_graph(self):
@@ -147,5 +153,5 @@ class UI(QMainWindow):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     app.setStyle('Fusion')
-    ui = UI()
+    ml = MaroonLines()
     sys.exit(app.exec_())

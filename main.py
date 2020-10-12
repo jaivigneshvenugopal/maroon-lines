@@ -1,13 +1,13 @@
 import sys
 from PyQt5 import QtWidgets
-from ui import UI
+from maroon_lines import MaroonLines
 
 
 class App:
 	def __init__(self):
 		app = QtWidgets.QApplication(sys.argv)
-		self.ui = UI()
-		self.ui.show()
+		self.ml = MaroonLines()
+		self.ml.show()
 		sys.exit(app.exec_())
 
 
