@@ -157,13 +157,13 @@ class MaroonLines(QMainWindow):
         scroll_bar = self.editor.verticalScrollBar()
         scroll_bar.setStyleSheet(
             """QScrollBar:vertical {
-                    width: 7px;
+                    width: 11px;
                     margin: 0;
                     background: #fcfcfc;
                   }
 
                   QScrollBar::handle:vertical {
-                    border: 7px solid #d9d9d9;
+                    border: 11px solid #d9d9d9;
                     background: #33333d;
                     min-height: 10px;
                   }
