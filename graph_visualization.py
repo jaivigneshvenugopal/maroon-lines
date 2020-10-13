@@ -26,11 +26,11 @@ class GraphVisualization(QMainWindow):
         self.canvas.mpl_connect('pick_event', self.pick_event)
         self.root = None
         self.curr = None
+        self.node_matrix = None
         self.temp_color = '#66ce62'
         self.root_color = '#006400'
         self.curr_color = '#d00000'
         self.middle_color = '#25B0B0'
-        self.root_curr_node_size = 250
         self.default_node_size = 200
         self.configure_layout()
 
@@ -132,11 +132,20 @@ class GraphVisualization(QMainWindow):
         for key, values in self.index.items():
             pos_x, _ = self.fill_pos_x(values, pos_x[self.root], pos_x)
 
-        return {k: [pos_x[k], pos_y[k]] for i, k in enumerate(graph.nodes.keys())}
+        seq_layout = {}
+        self.node_matrix = [[None for _ in range(len(dict.fromkeys(pos_y.values())))] for _ in range(len(dict.fromkeys(pos_x.values())))]
+        for i, k in enumerate(graph.nodes.keys()):
+            seq_layout[k] = [pos_x[k], pos_y[k]]
+            self.node_matrix[pos_x[k]][pos_y[k]] = k
+
+        return seq_layout
 
     def fill_pos_x(self, values, counter, pos_x):
         for val in values:
             if val not in pos_x:
                 pos_x[val] = counter
                 _, counter = self.fill_pos_x(self.index[val], counter, pos_x)
-        return pos_x, counter + 1
+        if values:
+            return pos_x, counter
+        else:
+            return pos_x, counter + 1

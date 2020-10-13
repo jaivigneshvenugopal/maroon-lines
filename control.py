@@ -105,7 +105,6 @@ def read_repo_object(path, file_hash):
     return text
 
 
-
 def write_repo_index(path, json_data):
     with open(repo_index_path(path), 'wb') as f:
         data = json.dumps(json_data)
