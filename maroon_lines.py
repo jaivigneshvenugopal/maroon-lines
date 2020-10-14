@@ -18,20 +18,30 @@ class MaroonLines(QMainWindow):
         self.current_file_hash = None
 
         self.layout = None
+        self.menu_bar = None
+        self.status_bar_lines = None
+        self.status_bar_versions = None
         self.editor = None
         self.graph = GraphVisualization()
 
         self.configure_frame()
         self.configure_layout()
-        self.configure_menubar()
+        self.configure_menu_bar()
         self.configure_editor()
         self.configure_graph()
+        self.configure_status_bar()
         self.showMaximized()
 
-    def configure_menubar(self):
-        self._menubar = self.menuBar()
-        self._menubar.setContentsMargins(0, 0, 0, 0)
-        self._menubar.setStyleSheet("""
+    # def eventFilter(self, obj, event):
+    #     if event.type() == Qt.CTRL:
+    #         if event.key() == Qt.CTRL + Qt.Key_P:
+    #             return True
+    #
+    #     return super().eventFilter(obj, event)
+
+    def configure_menu_bar(self):
+        self.menu_bar = self.menuBar()
+        self.menu_bar.setStyleSheet("""
             QMenuBar {
                 background-color: rgb(51, 51, 61);
                 color: rgb(205,215,211);
@@ -48,31 +58,61 @@ class MaroonLines(QMainWindow):
             }
         """)
 
-        self.__file = self._menubar.addMenu('File')
-        self.___new = self.__file.addAction('New')
-        self.___new.setShortcut("Ctrl+N")
-        self.___open = self.__file.addAction('Open')
-        self.___open.setShortcut("Ctrl+O")
-        self.___save = self.__file.addAction('Save')
-        self.___save.setShortcut("Ctrl+S")
-        self.___save_as = self.__file.addAction('Save As...')
-        self.___exit = self.__file.addAction('Exit')
-        self.___exit.setShortcut("Ctrl+W")
+        self.file_button = self.menu_bar.addMenu('File')
+        self.new_button = self.file_button.addAction('New')
+        self.new_button.setShortcut("Ctrl+N")
+        self.open_button = self.file_button.addAction('Open')
+        self.open_button.setShortcut("Ctrl+O")
+        self.save_button = self.file_button.addAction('Save')
+        self.save_button.setShortcut("Ctrl+S")
+        self.save_as_button = self.file_button.addAction('Save As...')
+        self.exit_button = self.file_button.addAction('Exit')
+        self.exit_button.setShortcut("Ctrl+W")
 
-        self.configure_menubar_connections()
+        # self.traverse_button = self._menubar.addMenu('Traverse')
+        # self.traverse_right = self.traverse_button.addAction('Traverse Right')
+        # self.traverse_right.setShortcut(QKeySequence(Qt.CTRL, Qt.Key_Tab, Qt.Key_Right))
+        # self.traverse_left = self.traverse_button.addAction('Traverse Left')
+        # self.traverse_left.setShortcut("Ctrl+Left")
 
-    def configure_menubar_connections(self):
-        self.___new.triggered.connect(self.handle_new_action)
-        self.___open.triggered.connect(self.handle_open_action)
-        self.___save.triggered.connect(self.handle_save_action)
-        self.___save_as.triggered.connect(self.handle_save_as_action)
-        self. ___exit.triggered.connect(self.handle_exit_action)
+        # self.traverse_right = QShortcut('Ctrl+P', self)
+        # self.traverse_right.activated.connect(self.handle_traverse_right_action)
+
+        self.configure_menu_bar_connections()
+
+    def configure_status_bar(self):
+        self.status_bar_lines = self.statusBar()
+        self.status_bar_lines.setStyleSheet("""
+            QStatusBar {
+                background: rgb(51, 51, 61);
+                color: rgb(205,215,211);
+                font: 16px;
+            }
+        """)
+        self.editor.textChanged.connect(self.set_number_of_lines_and_versions)
+        self.status_bar_versions = QLabel()
+        self.status_bar_versions.setStyleSheet("""
+            QLabel {
+                color: rgb(205,215,211)
+            }
+        """)
+        self.status_bar_lines.addPermanentWidget(self.status_bar_versions)
+
+    def configure_menu_bar_connections(self):
+        self.new_button.triggered.connect(self.handle_new_action)
+        self.open_button.triggered.connect(self.handle_open_action)
+        self.save_button.triggered.connect(self.handle_save_action)
+        self.save_as_button.triggered.connect(self.handle_save_as_action)
+        self. exit_button.triggered.connect(self.handle_exit_action)
+        # self.traverse_right.triggered.connect(self.handle_traverse_right_action)
 
     def handle_new_action(self):
         self.file_path = None
         self.current_file_hash = None
         self.editor.clear()
         self.graph.render_graph(None)
+        num_versions = self.graph.curr_num_nodes
+        self.status_bar_versions.setText('Versions: {}'.format(num_versions))
 
     def handle_open_action(self):
         file_info = QFileDialog.getOpenFileName(self, 'Open File')
@@ -85,6 +125,8 @@ class MaroonLines(QMainWindow):
             with open(name, 'r', encoding="utf8") as f:
                 text = f.read()
                 self.editor.text = text
+            num_versions = self.graph.curr_num_nodes
+            self.status_bar_versions.setText('Versions: {}'.format(num_versions))
 
     def handle_save_action(self):
         if self.file_path:
@@ -97,6 +139,8 @@ class MaroonLines(QMainWindow):
                     self.graph.render_graph(control.repo_index(self.file_path))
         else:
             self.handle_save_as_action()
+        num_versions = self.graph.curr_num_nodes
+        self.status_bar_versions.setText('Versions: {}'.format(num_versions))
 
     def handle_save_as_action(self):
         file_info = QFileDialog.getSaveFileName(self, 'Save As...')
@@ -119,6 +163,9 @@ class MaroonLines(QMainWindow):
         self.editor.text = control.read_repo_object(self.file_path, file_hash)
         with open(self.file_path, 'w', encoding="utf8") as f:
             f.write(self.editor.text)
+
+    # def handle_traverse_right_action(self):
+    #     print('right')
 
     # Define the geometry of the main window
     def configure_frame(self):
@@ -197,6 +244,10 @@ class MaroonLines(QMainWindow):
                   QScrollBar::sub-page:vertical {
                     height: 0px; 
                   }""")
+
+    def set_number_of_lines_and_versions(self):
+        num_lines = len(self.editor.lines)
+        self.status_bar_lines.showMessage('Lines: {}'.format(num_lines))
 
 
 if __name__ == '__main__':

@@ -24,6 +24,7 @@ class GraphVisualization(QMainWindow):
         self.figure.set_facecolor('#fff0f0')
         self.canvas = FigureCanvas(self.figure)
         self.canvas.mpl_connect('pick_event', self.pick_event)
+        self.curr_num_nodes = None
         self.root = None
         self.curr = None
         self.node_matrix = None
@@ -69,6 +70,7 @@ class GraphVisualization(QMainWindow):
 
     def draw_temp_graph(self):
         self.figure.clf()
+        self.curr_num_nodes = 1
         graph = nx.DiGraph()
         nodes = ['temp']
 
@@ -96,7 +98,7 @@ class GraphVisualization(QMainWindow):
             nodes.append(key)
             for val in values:
                 edges.append((key, val))
-
+        self.curr_num_nodes = len(nodes)
         graph.add_nodes_from(nodes)
         graph.add_edges_from(edges)
         for node, node_attrs in graph.nodes(data=True):
