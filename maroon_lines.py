@@ -44,10 +44,9 @@ class MaroonLines(QMainWindow):
             elif event.key() == Qt.Key_Left:
                 print('Left')
             else:
-                print('nothing')
-                return False
+                return super(MaroonLines, self).eventFilter(source, event)
             return True
-        return True
+        return super(MaroonLines, self).eventFilter(source, event)
 
 
     def configure_menu_bar(self):
@@ -79,13 +78,6 @@ class MaroonLines(QMainWindow):
         self.save_as_button = self.file_button.addAction('Save As...')
         self.exit_button = self.file_button.addAction('Exit')
         self.exit_button.setShortcut("Ctrl+W")
-
-        # self.traverse_button = self.menu_bar.addMenu('Traverse')
-        # self.traverse_right = self.traverse_button.addAction('Traverse Right')
-        # self.traverse_right.setShortcut(QKeySequence.MoveToNextWord)
-        # self.traverse_right.triggered.connect(self.handle_traverse_right_action)
-        # self.traverse_left = self.traverse_button.addAction('Traverse Left')
-        # self.traverse_left.setShortcut("Ctrl+Left")
 
         self.configure_menu_bar_connections()
 
@@ -193,6 +185,8 @@ class MaroonLines(QMainWindow):
         self.editor = Editor()
         self.editor.currentLineColor = None
         self.editor.drawIncorrectIndentation = False
+        self.editor.moveLineUpAction.setEnabled(False)
+        self.editor.moveLineDownAction.setEnabled(False)
         self.editor.setStyleSheet("background-color: #fcfcfc")
         self.editor.setFont(QFont('Fire Code', 14))
         self.configure_editor_scrollbar()
