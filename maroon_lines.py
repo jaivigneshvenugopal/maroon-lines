@@ -9,6 +9,7 @@ import qutepart
 import control
 
 from IPython import embed
+from editor import Editor
 
 
 class MaroonLines(QMainWindow):
@@ -23,6 +24,7 @@ class MaroonLines(QMainWindow):
         self.status_bar_versions = None
         self.editor = None
         self.graph = GraphVisualization()
+        self.keys = set()
 
         self.configure_frame()
         self.configure_layout()
@@ -32,12 +34,13 @@ class MaroonLines(QMainWindow):
         self.configure_status_bar()
         self.showMaximized()
 
-    # def eventFilter(self, obj, event):
-    #     if event.type() == Qt.CTRL:
-    #         if event.key() == Qt.CTRL + Qt.Key_P:
-    #             return True
-    #
-    #     return super().eventFilter(obj, event)
+    def eventFilter(self, source, event):
+        if (event.type() == QtCore.QEvent.ShortcutOverride and event.modifiers() == QtCore.Qt.ControlModifier and
+                event.key() == QtCore.Qt.Key_C):
+            print('eventfilter')
+            # eat the shortcut on the line-edit
+            return True
+        return super(MaroonLines, self).eventFilter(source, event)
 
     def configure_menu_bar(self):
         self.menu_bar = self.menuBar()
@@ -69,16 +72,18 @@ class MaroonLines(QMainWindow):
         self.exit_button = self.file_button.addAction('Exit')
         self.exit_button.setShortcut("Ctrl+W")
 
-        # self.traverse_button = self._menubar.addMenu('Traverse')
+        # self.traverse_button = self.menu_bar.addMenu('Traverse')
         # self.traverse_right = self.traverse_button.addAction('Traverse Right')
-        # self.traverse_right.setShortcut(QKeySequence(Qt.CTRL, Qt.Key_Tab, Qt.Key_Right))
+        # self.traverse_right.setShortcut(QKeySequence.MoveToNextWord)
+        # self.traverse_right.triggered.connect(self.handle_traverse_right_action)
         # self.traverse_left = self.traverse_button.addAction('Traverse Left')
         # self.traverse_left.setShortcut("Ctrl+Left")
 
-        # self.traverse_right = QShortcut('Ctrl+P', self)
-        # self.traverse_right.activated.connect(self.handle_traverse_right_action)
 
         self.configure_menu_bar_connections()
+
+    def handle_traverse_right_action(self):
+        self.editor.insertText(0, 'typed right')
 
     def configure_status_bar(self):
         self.status_bar_lines = self.statusBar()
@@ -103,8 +108,7 @@ class MaroonLines(QMainWindow):
         self.open_button.triggered.connect(self.handle_open_action)
         self.save_button.triggered.connect(self.handle_save_action)
         self.save_as_button.triggered.connect(self.handle_save_as_action)
-        self. exit_button.triggered.connect(self.handle_exit_action)
-        # self.traverse_right.triggered.connect(self.handle_traverse_right_action)
+        self.exit_button.triggered.connect(self.handle_exit_action)
 
     def handle_new_action(self):
         self.file_path = None
@@ -164,9 +168,6 @@ class MaroonLines(QMainWindow):
         with open(self.file_path, 'w', encoding="utf8") as f:
             f.write(self.editor.text)
 
-    # def handle_traverse_right_action(self):
-    #     print('right')
-
     # Define the geometry of the main window
     def configure_frame(self):
         self.setGeometry(500, 250, 1000, 500)
@@ -182,7 +183,7 @@ class MaroonLines(QMainWindow):
 
     # Instantiate editor
     def configure_editor(self):
-        self.editor = qutepart.Qutepart()
+        self.editor = Editor()
         self.editor.currentLineColor = None
         self.editor.drawIncorrectIndentation = False
         self.editor.setStyleSheet("background-color: #fcfcfc")
@@ -194,6 +195,7 @@ class MaroonLines(QMainWindow):
         editor_margin.setFont(font)
         editor_margin.setStyleSheet('background-color: #f0f0f0')
         self.layout.addWidget(self.editor, 8)
+        self.editor.installEventFilter(self)
 
     def configure_graph(self):
         self.graph.current_node.connect(self.handle_setting_node)
