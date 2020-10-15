@@ -24,7 +24,6 @@ class MaroonLines(QMainWindow):
         self.status_bar_versions = None
         self.editor = None
         self.graph = GraphVisualization()
-        self.keys = set()
 
         self.configure_frame()
         self.configure_layout()
@@ -35,12 +34,21 @@ class MaroonLines(QMainWindow):
         self.showMaximized()
 
     def eventFilter(self, source, event):
-        if (event.type() == QtCore.QEvent.ShortcutOverride and event.modifiers() == QtCore.Qt.ControlModifier and
-                event.key() == QtCore.Qt.Key_C):
-            print('eventfilter')
-            # eat the shortcut on the line-edit
+        if event.type() == QEvent.KeyPress and event.modifiers() == Qt.AltModifier:
+            if event.key() == Qt.Key_Up:
+                print('Up')
+            elif event.key() == Qt.Key_Down:
+                print('Down')
+            elif event.key() == Qt.Key_Right:
+                print('Right')
+            elif event.key() == Qt.Key_Left:
+                print('Left')
+            else:
+                print('nothing')
+                return False
             return True
-        return super(MaroonLines, self).eventFilter(source, event)
+        return True
+
 
     def configure_menu_bar(self):
         self.menu_bar = self.menuBar()
@@ -78,7 +86,6 @@ class MaroonLines(QMainWindow):
         # self.traverse_right.triggered.connect(self.handle_traverse_right_action)
         # self.traverse_left = self.traverse_button.addAction('Traverse Left')
         # self.traverse_left.setShortcut("Ctrl+Left")
-
 
         self.configure_menu_bar_connections()
 
