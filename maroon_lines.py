@@ -37,6 +37,7 @@ class MaroonLines(QMainWindow):
         if event.type() == QEvent.KeyPress and event.modifiers() == Qt.AltModifier:
             if event.key() == Qt.Key_Up:
                 print('Up')
+                self.graph.move_up()
             elif event.key() == Qt.Key_Down:
                 print('Down')
             elif event.key() == Qt.Key_Right:
@@ -47,7 +48,6 @@ class MaroonLines(QMainWindow):
                 return super(MaroonLines, self).eventFilter(source, event)
             return True
         return super(MaroonLines, self).eventFilter(source, event)
-
 
     def configure_menu_bar(self):
         self.menu_bar = self.menuBar()
