@@ -39,9 +39,8 @@ class MaroonLines(QMainWindow):
                 self.graph.move_up()
             elif event.key() == Qt.Key_Down:
                 self.graph.move_down()
-                print('Down')
             elif event.key() == Qt.Key_Right:
-                print('Right')
+                self.graph.move_right()
             elif event.key() == Qt.Key_Left:
                 print('Left')
             else:
