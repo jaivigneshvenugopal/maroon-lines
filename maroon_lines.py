@@ -1,15 +1,11 @@
 import sys
-import PyQt5
-from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from graph_visualization import GraphVisualization
-import qutepart
 import control
-
-from IPython import embed
 from editor import Editor
+from IPython import embed
 
 
 class MenuBar(QMenuBar):
@@ -26,36 +22,41 @@ class MenuBar(QMenuBar):
 class MaroonLines(QMainWindow):
     def __init__(self):
         super(QMainWindow, self).__init__()
+
+        # File-related properties
         self.file_path = None
-        self.current_file_hash = None
+        self.file_hash = None
 
+        # Widget-related properties
         self.layout = None
-        self.menu_bar = None
-        self.status_bar_lines = None
-        self.status_bar_versions = None
-        self.editor = None
+        self.central_widget = None
+        self.menu_bar = MenuBar()
+        self.editor = Editor()
         self.graph = GraphVisualization()
+        self.status_bar = QStatusBar()
+        self.status_bar_right_corner_label = None
 
-        self.shortcut_functions = {
+        # Shortcuts and corresponding functions
+        self.shortcut_arrow_functions = {
             Qt.Key_Up: self.graph.move_up,
             Qt.Key_Down: self.graph.move_down,
             Qt.Key_Right: self.graph.move_right,
             Qt.Key_Left: self.graph.move_left
         }
 
-        self.configure_frame()
-        self.configure_layout()
+        # Instantiate relevant components
+        self.configure_layout_and_central_widget()
         self.configure_menu_bar()
         self.configure_editor()
         self.configure_graph()
         self.configure_status_bar()
-        self.showMaximized()
+        self.configure_and_show_frame()
 
     def eventFilter(self, source, event):
         if event.type() == QEvent.KeyPress and event.modifiers() == Qt.AltModifier:
             key = event.key()
-            if key in self.shortcut_functions:
-                traverse = self.shortcut_functions[key]
+            if key in self.shortcut_arrow_functions:
+                traverse = self.shortcut_arrow_functions[key]
                 traverse()
                 return True
             else:
@@ -63,7 +64,6 @@ class MaroonLines(QMainWindow):
         return False
 
     def configure_menu_bar(self):
-        self.menu_bar = MenuBar()
         self.setMenuBar(self.menu_bar)
         self.menu_bar.setStyleSheet("""
             QMenuBar {
@@ -82,25 +82,31 @@ class MaroonLines(QMainWindow):
             }
         """)
 
-        self.file_button = self.menu_bar.addMenu('File')
-        self.new_button = self.file_button.addAction('New')
-        self.new_button.setShortcut("Ctrl+N")
-        self.open_button = self.file_button.addAction('Open')
-        self.open_button.setShortcut("Ctrl+O")
-        self.save_button = self.file_button.addAction('Save')
-        self.save_button.setShortcut("Ctrl+S")
-        self.save_as_button = self.file_button.addAction('Save As...')
-        self.exit_button = self.file_button.addAction('Exit')
-        self.exit_button.setShortcut("Ctrl+W")
+        menu = self.menu_bar.addMenu('File')
 
-        self.configure_menu_bar_connections()
+        new_action = menu.addAction('New')
+        new_action.setShortcut("Ctrl+N")
+        new_action.triggered.connect(self.handle_new_action)
 
-    def handle_traverse_right_action(self):
-        self.editor.insertText(0, 'typed right')
+        open_action = menu.addAction('Open')
+        open_action.setShortcut("Ctrl+O")
+        open_action.triggered.connect(self.handle_open_action)
+
+        save_action = menu.addAction('Save')
+        save_action.setShortcut("Ctrl+S")
+        save_action.triggered.connect(self.handle_save_action)
+
+        save_as_action = menu.addAction('Save As...')
+        save_as_action.setShortcut("Shift+Ctrl+S")
+        save_as_action.triggered.connect(self.handle_save_as_action)
+
+        exit_action = menu.addAction('Exit')
+        exit_action.setShortcut("Ctrl+W")
+        exit_action.triggered.connect(self.handle_exit_action)
 
     def configure_status_bar(self):
-        self.status_bar_lines = self.statusBar()
-        self.status_bar_lines.setStyleSheet("""
+        self.setStatusBar(self.status_bar)
+        self.status_bar.setStyleSheet("""
             QStatusBar {
                 background: rgb(51, 51, 61);
                 color: rgb(205,215,211);
@@ -108,28 +114,21 @@ class MaroonLines(QMainWindow):
             }
         """)
         self.editor.textChanged.connect(self.set_number_of_lines_and_versions)
-        self.status_bar_versions = QLabel()
-        self.status_bar_versions.setStyleSheet("""
+        self.status_bar_right_corner_label = QLabel()
+        self.status_bar_right_corner_label.setStyleSheet("""
             QLabel {
                 color: rgb(205,215,211)
             }
         """)
-        self.status_bar_lines.addPermanentWidget(self.status_bar_versions)
-
-    def configure_menu_bar_connections(self):
-        self.new_button.triggered.connect(self.handle_new_action)
-        self.open_button.triggered.connect(self.handle_open_action)
-        self.save_button.triggered.connect(self.handle_save_action)
-        self.save_as_button.triggered.connect(self.handle_save_as_action)
-        self.exit_button.triggered.connect(self.handle_exit_action)
+        self.status_bar.addPermanentWidget(self.status_bar_right_corner_label)
 
     def handle_new_action(self):
         self.file_path = None
-        self.current_file_hash = None
+        self.file_hash = None
         self.editor.clear()
         self.graph.render_graph(None)
         num_versions = self.graph.curr_num_nodes
-        self.status_bar_versions.setText('Versions: {}'.format(num_versions))
+        self.status_bar_right_corner_label.setText('Versions: {}'.format(num_versions))
 
     def handle_open_action(self):
         file_info = QFileDialog.getOpenFileName(self, 'Open File')
@@ -137,13 +136,13 @@ class MaroonLines(QMainWindow):
         if name != '':
             self.file_path = name
             if control.repo_exists(self.file_path):
-                self.current_file_hash = control.get_current_file_hash(self.file_path)
+                self.file_hash = control.get_current_file_hash(self.file_path)
                 self.graph.render_graph(control.repo_index(self.file_path))
             with open(name, 'r', encoding="utf8") as f:
                 text = f.read()
                 self.editor.text = text
             num_versions = self.graph.curr_num_nodes
-            self.status_bar_versions.setText('Versions: {}'.format(num_versions))
+            self.status_bar_right_corner_label.setText('Versions: {}'.format(num_versions))
 
     def handle_save_action(self):
         if self.file_path:
@@ -151,13 +150,13 @@ class MaroonLines(QMainWindow):
             with open(self.file_path, 'w', encoding="utf8") as f:
                 f.write(data)
                 file_hash = control.get_hash(data)
-                if control.append_object(self.file_path, file_hash, data, self.current_file_hash):
-                    self.current_file_hash = file_hash
+                if control.append_object(self.file_path, file_hash, data, self.file_hash):
+                    self.file_hash = file_hash
                     self.graph.render_graph(control.repo_index(self.file_path))
         else:
             self.handle_save_as_action()
         num_versions = self.graph.curr_num_nodes
-        self.status_bar_versions.setText('Versions: {}'.format(num_versions))
+        self.status_bar_right_corner_label.setText('Versions: {}'.format(num_versions))
 
     def handle_save_as_action(self):
         file_info = QFileDialog.getSaveFileName(self, 'Save As...')
@@ -168,7 +167,7 @@ class MaroonLines(QMainWindow):
             with open(name, 'w', encoding="utf8") as f:
                 f.write(text)
             control.repo_init(self.file_path)
-            self.current_file_hash = control.get_current_file_hash(self.file_path)
+            self.file_hash = control.get_current_file_hash(self.file_path)
             self.graph.render_graph(control.repo_index(self.file_path))
 
     def handle_exit_action(self):
@@ -176,27 +175,28 @@ class MaroonLines(QMainWindow):
 
     def handle_setting_node(self, file_hash):
         control.set_object(self.file_path, file_hash)
-        self.current_file_hash = file_hash
+        self.file_hash = file_hash
         self.editor.text = control.read_repo_object(self.file_path, file_hash)
         with open(self.file_path, 'w', encoding="utf8") as f:
             f.write(self.editor.text)
 
-    # Define the geometry of the main window
-    def configure_frame(self):
+    # Define the geometry of the application and show it
+    def configure_and_show_frame(self):
         self.setGeometry(500, 250, 1000, 500)
         self.setWindowTitle("Maroon Lines")
+        self.showMaximized()
 
-    def configure_layout(self):
-        central_widget = QWidget()
-        central_widget.setStyleSheet("background-color: #f0b034")
-        self.layout = QHBoxLayout(central_widget)
+    # Define layout and set a central widget to QMainWindow
+    def configure_layout_and_central_widget(self):
+        self.layout = QHBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)
-        central_widget.setLayout(self.layout)
-        self.setCentralWidget(central_widget)
+        self.central_widget = QWidget()
+        self.central_widget.setStyleSheet("background-color: #f0b034")
+        self.central_widget.setLayout(self.layout)
+        self.setCentralWidget(self.central_widget)
 
     # Instantiate editor
     def configure_editor(self):
-        self.editor = Editor()
         self.editor.currentLineColor = None
         self.editor.drawIncorrectIndentation = False
         self.editor.moveLineUpAction.setEnabled(False)
@@ -264,7 +264,7 @@ class MaroonLines(QMainWindow):
 
     def set_number_of_lines_and_versions(self):
         num_lines = len(self.editor.lines)
-        self.status_bar_lines.showMessage('Lines: {}'.format(num_lines))
+        self.status_bar.showMessage('Lines: {}'.format(num_lines))
 
 
 if __name__ == '__main__':

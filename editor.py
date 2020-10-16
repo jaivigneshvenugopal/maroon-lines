@@ -1,7 +1,5 @@
 from qutepart import *
-import PyQt5
-from PyQt5 import QtCore, QtWidgets
-from PyQt5.QtWidgets import QShortcut
+from IPython import embed
 
 
 class Editor(Qutepart):
