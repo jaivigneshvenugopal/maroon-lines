@@ -132,12 +132,13 @@ class MaroonLines(QMainWindow):
             }
         """)
         self.status_bar.addPermanentWidget(self.status_bar_right_corner_label)
+        self.update_status_bar_num_lines()
 
     # Refactored
     def configure_graph(self):
         self.graph.curr_node_changed.connect(self.update_editor_current_file)
         self.graph.num_nodes_changed.connect(self.update_status_bar_num_nodes)
-        self.layout.addWidget(self.graph, 2)
+        self.layout.addWidget(self.graph, 18)
         self.graph.render_graph(None)
 
     # Define the geometry of the application and show it
@@ -195,23 +196,17 @@ class MaroonLines(QMainWindow):
 
     # Instantiate editor
     def configure_editor(self):
+        # Configure editor settings
         self.editor.currentLineColor = None
         self.editor.drawIncorrectIndentation = False
         self.editor.moveLineUpAction.setEnabled(False)
         self.editor.moveLineDownAction.setEnabled(False)
+
+        # Configure editor style
         self.editor.setStyleSheet("background-color: #fcfcfc")
         self.editor.setFont(QFont('Fire Code', 14))
-        self.configure_editor_scrollbar()
-        editor_margin = self.editor.getMargins()[0]
-        font = QFont('Fire Code', 14)
-        font.setItalic(True)
-        editor_margin.setFont(font)
-        editor_margin.setStyleSheet('background-color: #f0f0f0')
-        self.layout.addWidget(self.editor, 8)
-        self.editor.installEventFilter(self)
-        self.editor.textChanged.connect(self.update_status_bar_num_lines)
 
-    def configure_editor_scrollbar(self):
+        # Configure editor scroll bar
         scroll_bar = self.editor.verticalScrollBar()
         scroll_bar.setStyleSheet(
             """QScrollBar:vertical {
@@ -255,6 +250,16 @@ class MaroonLines(QMainWindow):
                   QScrollBar::sub-page:vertical {
                     height: 0px; 
                   }""")
+
+        # Configure editor margins
+        editor_margin = self.editor.getMargins()[0]
+        font = QFont('Fire Code', 14)
+        editor_margin.setFont(font)
+        editor_margin.setStyleSheet('background-color: #f0f0f0')
+
+        self.editor.textChanged.connect(self.update_status_bar_num_lines)
+        self.editor.installEventFilter(self)
+        self.layout.addWidget(self.editor, 82)
 
     # Slot Functions
     def update_status_bar_num_lines(self):
