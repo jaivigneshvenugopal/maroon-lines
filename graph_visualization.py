@@ -40,26 +40,15 @@ class GraphVisualization(QMainWindow):
         self.configure_layout()
 
     def pick_event(self, event):
-        # if we did not hit a node, bail
         if not hasattr(event, 'nodes') or not event.nodes:
             return
 
-        # pull out the graph,
-        graph = event.artist.graph
-        for node in event.nodes:
-            if node == self.curr:
-                return
+        node = event.nodes[0]
+        if node == self.curr:
+            return
 
-            graph.nodes[node]['color'] = self.curr_color
-            if self.curr == self.root:
-                graph.nodes[self.curr]['color'] = self.root_color
-            else:
-                graph.nodes[self.curr]['color'] = self.middle_color
-            self.curr = node
-
-        event.artist.stale = True
-        event.artist.figure.canvas.draw_idle()
-        self.current_node.emit(self.curr)
+        self.switch_node_colors(node)
+        self.refresh_graph()
 
     def configure_layout(self):
         self.setCentralWidget(self.canvas)
@@ -156,18 +145,37 @@ class GraphVisualization(QMainWindow):
         else:
             return pos_x, counter + 1
 
+    def switch_node_colors(self, node):
+        self.graph.nodes[node]['color'] = self.curr_color
+        if self.curr == self.root:
+            self.graph.nodes[self.curr]['color'] = self.root_color
+        else:
+            self.graph.nodes[self.curr]['color'] = self.middle_color
+        self.curr = node
+
+    def refresh_graph(self):
+        self.plot.stale = True
+        self.canvas.draw_idle()
+        self.current_node.emit(self.curr)
+
     def move_up(self):
         curr_pos_x = self.pos_x[self.curr]
         curr_pos_y = self.pos_y[self.curr]
         if curr_pos_y + 1 < len(self.node_matrix[0]):
             node = self.node_matrix[curr_pos_x][curr_pos_y + 1]
-            self.graph.nodes[node]['color'] = self.curr_color
-            if self.curr == self.root:
-                self.graph.nodes[self.curr]['color'] = self.root_color
-            else:
-                self.graph.nodes[self.curr]['color'] = self.middle_color
-            self.curr = node
+            if node:
+                self.switch_node_colors(node)
+                self.refresh_graph()
 
-        self.plot.stale = True
-        self.canvas.draw_idle()
-        self.current_node.emit(self.curr)
+    def move_down(self):
+        curr_pos_x = self.pos_x[self.curr]
+        curr_pos_y = self.pos_y[self.curr]
+        if self.curr == self.root:
+            return
+        curr_pos_y -= 1
+        node = self.node_matrix[curr_pos_x][curr_pos_y]
+        while not node:
+            curr_pos_x -= 1
+            node = self.node_matrix[curr_pos_x][curr_pos_y]
+        self.switch_node_colors(node)
+        self.refresh_graph()

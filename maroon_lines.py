@@ -36,9 +36,9 @@ class MaroonLines(QMainWindow):
     def eventFilter(self, source, event):
         if event.type() == QEvent.KeyPress and event.modifiers() == Qt.AltModifier:
             if event.key() == Qt.Key_Up:
-                print('Up')
                 self.graph.move_up()
             elif event.key() == Qt.Key_Down:
+                self.graph.move_down()
                 print('Down')
             elif event.key() == Qt.Key_Right:
                 print('Right')
