@@ -12,6 +12,17 @@ from IPython import embed
 from editor import Editor
 
 
+class MenuBar(QMenuBar):
+    def __init__(self):
+        super().__init__()
+        self.installEventFilter(self)
+
+    def eventFilter(self, source, event):
+        if event.type() == QEvent.KeyRelease and event.modifiers() == Qt.AltModifier:
+            return True
+        return False
+
+
 class MaroonLines(QMainWindow):
     def __init__(self):
         super(QMainWindow, self).__init__()
@@ -25,6 +36,13 @@ class MaroonLines(QMainWindow):
         self.editor = None
         self.graph = GraphVisualization()
 
+        self.shortcut_functions = {
+            Qt.Key_Up: self.graph.move_up,
+            Qt.Key_Down: self.graph.move_down,
+            Qt.Key_Right: self.graph.move_right,
+            Qt.Key_Left: self.graph.move_left
+        }
+
         self.configure_frame()
         self.configure_layout()
         self.configure_menu_bar()
@@ -35,21 +53,18 @@ class MaroonLines(QMainWindow):
 
     def eventFilter(self, source, event):
         if event.type() == QEvent.KeyPress and event.modifiers() == Qt.AltModifier:
-            if event.key() == Qt.Key_Up:
-                self.graph.move_up()
-            elif event.key() == Qt.Key_Down:
-                self.graph.move_down()
-            elif event.key() == Qt.Key_Right:
-                self.graph.move_right()
-            elif event.key() == Qt.Key_Left:
-                print('Left')
+            key = event.key()
+            if key in self.shortcut_functions:
+                traverse = self.shortcut_functions[key]
+                traverse()
+                return True
             else:
-                return super(MaroonLines, self).eventFilter(source, event)
-            return True
-        return super(MaroonLines, self).eventFilter(source, event)
+                return False
+        return False
 
     def configure_menu_bar(self):
-        self.menu_bar = self.menuBar()
+        self.menu_bar = MenuBar()
+        self.setMenuBar(self.menu_bar)
         self.menu_bar.setStyleSheet("""
             QMenuBar {
                 background-color: rgb(51, 51, 61);

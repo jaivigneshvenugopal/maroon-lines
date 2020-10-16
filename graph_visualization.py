@@ -194,6 +194,20 @@ class GraphVisualization(QMainWindow):
             self.switch_node_colors(node)
             self.refresh_graph()
 
+    def move_left(self):
+        row = self.pos_x[self.curr]
+        col = self.pos_y[self.curr]
+
+        node = None
+
+        while row - 1 >= 0 and not node:
+            row -= 1
+            node = self.find_nearest_node_in_row(row, col)
+
+        if node:
+            self.switch_node_colors(node)
+            self.refresh_graph()
+
     def find_nearest_node_in_row(self, row, col):
         node = self.node_matrix[row][col]
         if node:
