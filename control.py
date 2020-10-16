@@ -131,7 +131,7 @@ def append_object(path, file_hash, data, parent):
     return False
 
 
-def set_object(path, file_hash):
+def update_index_curr(path, file_hash):
     index = repo_index(path)
     index['current'] = file_hash
     write_repo_index(path, index)

@@ -15,7 +15,8 @@ from IPython import embed
 
 
 class GraphVisualization(QMainWindow):
-    current_node = PyQt5.QtCore.pyqtSignal(str)
+    curr_node_changed = PyQt5.QtCore.pyqtSignal(str)
+    num_nodes_changed = PyQt5.QtCore.pyqtSignal(str)
 
     def __init__(self):
         super(GraphVisualization, self).__init__()
@@ -60,6 +61,7 @@ class GraphVisualization(QMainWindow):
             eval('self.draw_graph()')
         else:
             eval('self.draw_temp_graph()')
+        self.num_nodes_changed.emit(str(self.curr_num_nodes))
 
     def draw_temp_graph(self):
         self.figure.clf()
@@ -156,7 +158,7 @@ class GraphVisualization(QMainWindow):
     def refresh_graph(self):
         self.plot.stale = True
         self.canvas.draw_idle()
-        self.current_node.emit(self.curr)
+        self.curr_node_changed.emit(self.curr)
 
     def move_up(self):
         curr_pos_x = self.pos_x[self.curr]
