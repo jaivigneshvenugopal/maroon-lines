@@ -168,7 +168,7 @@ class MaroonLines(QMainWindow):
 
     def handle_save_action(self):
         if self.file_path:
-            data = self.editor.textForSaving()
+            data = self.editor.text
             with open(self.file_path, 'w', encoding="utf8") as f:
                 f.write(data)
                 file_hash = control.get_hash(data)
@@ -183,7 +183,7 @@ class MaroonLines(QMainWindow):
         name, file_type = str(file_info[0]), file_info[1]
         if name != '':
             self.file_path = name
-            text = self.editor.textForSaving()
+            text = self.editor.text
             with open(name, 'w', encoding="utf8") as f:
                 f.write(text)
             control.repo_init(self.file_path)
