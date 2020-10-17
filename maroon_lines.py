@@ -154,17 +154,24 @@ class MaroonLines(QMainWindow):
         self.editor.clear()
         self.graph.render_graph(None)
 
+    # Refactored
     def handle_open_action(self):
         file_info = QFileDialog.getOpenFileName(self, 'Open File')
-        name, file_type = str(file_info[0]), file_info[1]
-        if name != '':
-            self.file_path = name
-            if control.repo_exists(self.file_path):
+        file_path, file_type = str(file_info[0]), file_info[1]
+        if file_path:
+            self.file_path = file_path
+            self.load_file_to_editor(file_path)
+
+            # Instantiate new repo if needed
+            if not control.repo_exists(self.file_path):
+                control.repo_init(self.file_path)
+
+            # Account for dead repos with same file path
+            if self.index_current_is_different_from_editor_file():
+                control.repo_rebuilt(self.file_path)
                 self.file_hash = control.get_current_file_hash(self.file_path)
-                self.graph.render_graph(control.repo_index(self.file_path))
-            with open(name, 'r', encoding="utf8") as f:
-                text = f.read()
-                self.editor.text = text
+
+            self.graph.render_graph(control.repo_index(self.file_path))
 
     def handle_save_action(self):
         if self.file_path:
@@ -273,6 +280,15 @@ class MaroonLines(QMainWindow):
         self.file_hash = file_hash
         self.editor.clear()
         self.editor.text = control.read_repo_object(self.file_path, file_hash)
+
+    # Helper functions
+    def load_file_to_editor(self, file_path):
+        with open(file_path, 'r') as f:
+            text = f.read()
+            self.editor.text = text
+
+    def index_current_is_different_from_editor_file(self):
+        return control.get_current_file_hash(self.file_path) != control.get_hash(self.editor.text)
 
 
 if __name__ == '__main__':

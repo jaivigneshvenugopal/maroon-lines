@@ -7,31 +7,7 @@ import re
 import sys
 import zlib
 import json
-
-argparser = argparse.ArgumentParser(description="The stupid content tracker")
-argsubparsers = argparser.add_subparsers(title="Commands", dest="command")
-argsubparsers.required = True
-
-argsp = argsubparsers.add_parser("init", help="Initialize a new, empty repository.")
-argsp.add_argument("path",
-                   metavar="directory",
-                   nargs="?",
-                   default=".",
-                   help="Where to create the repository.")
-
-argsp = argsubparsers.add_parser("root", help="Read the latest object.")
-argsp.add_argument("path",
-                   metavar="directory",
-                   nargs="?",
-                   default=".",
-                   help="Where to find the repository.")
-
-argsp = argsubparsers.add_parser("append", help="Append the latest object.")
-argsp.add_argument("path",
-                   metavar="directory",
-                   nargs="?",
-                   default=".",
-                   help="Where to find the repository.")
+import shutil
 
 
 def repo_init(path):
@@ -39,12 +15,12 @@ def repo_init(path):
         data = f.read()
     dir_name = hashlib.sha1(path.encode()).hexdigest()
     file_name = hashlib.sha1(data.encode()).hexdigest()
-    binary_data = zlib.compress(data.encode())
-    repo_dirs = './repos/{}/{}/{}/'.format(dir_name[0:2], dir_name[2:], 'objects')
+    repo_dirs = os.path.join('repos', dir_name[0:2], dir_name[2:], 'objects')
 
     if not os.path.exists(repo_dirs):
         os.makedirs(repo_dirs)
         with open(os.path.join(repo_dirs, file_name), 'wb') as f:
+            binary_data = zlib.compress(data.encode())
             f.write(binary_data)
 
         index = {
@@ -54,11 +30,23 @@ def repo_init(path):
         }
         index = json.dumps(index)
         binary_index = zlib.compress(index.encode())
-        repo_index = './repos/{}/{}/{}'.format(dir_name[0:2], dir_name[2:], 'index')
+        repo_index = os.path.join('repos', dir_name[0:2], dir_name[2:], 'index')
         with open(repo_index, 'wb') as f:
             f.write(binary_index)
     else:
         raise Exception('Repo already exists!')
+
+
+def repo_remove(path):
+    if repo_exists(path):
+        dir_name = hashlib.sha1(path.encode()).hexdigest()
+        repo_path = os.path.join('repos', dir_name[0:2], dir_name[2:])
+        shutil.rmtree(repo_path)
+
+
+def repo_rebuilt(path):
+    repo_remove(path)
+    repo_init(path)
 
 
 def repo_exists(path):
