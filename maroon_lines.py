@@ -167,25 +167,29 @@ class MaroonLines(QMainWindow):
                 control.repo_init(self.file_path)
 
             # Account for outdated repos with same file path
-            if self.index_current_is_different_from_editor_file():
+            if self.index_current_is_different_from_file_in_editor():
                 file_hash = control.get_hash(self.editor.text)
                 if control.file_hash_exists_in_repo(self.file_path, file_hash):
                     control.update_index_curr(self.file_path, file_hash)
                 else:
                     control.build_bridge(self.file_path, self.editor.text)
-                self.file_hash = control.get_current_file_hash(self.file_path)
 
+            self.file_hash = control.get_current_file_hash(self.file_path)
             self.graph.render_graph(control.repo_index(self.file_path))
 
+    # Refactored
     def handle_save_action(self):
         if self.file_path:
             data = self.editor.text
-            with open(self.file_path, 'w', encoding="utf8") as f:
+            with open(self.file_path, 'w') as f:
                 f.write(data)
-                file_hash = control.get_hash(data)
-                if control.append_object(self.file_path, file_hash, data, self.file_hash):
-                    self.file_hash = file_hash
-                    self.graph.render_graph(control.repo_index(self.file_path))
+            file_hash = control.get_hash(data)
+            if control.file_hash_exists_in_repo(self.file_path, file_hash):
+                control.update_index_curr(self.file_path, file_hash)
+            else:
+                control.append_file_object(self.file_path, file_hash, data, self.file_hash)
+            self.file_hash = file_hash
+            self.graph.render_graph(control.repo_index(self.file_path))
         else:
             self.handle_save_as_action()
 
@@ -291,7 +295,7 @@ class MaroonLines(QMainWindow):
             text = f.read()
             self.editor.text = text
 
-    def index_current_is_different_from_editor_file(self):
+    def index_current_is_different_from_file_in_editor(self):
         return control.get_current_file_hash(self.file_path) != control.get_hash(self.editor.text)
 
 

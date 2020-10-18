@@ -107,19 +107,16 @@ def write_repo_object(path, file_hash, data):
         f.write(data)
 
 
-def append_object(path, file_hash, data, parent, adopted=False):
+def append_file_object(path, file_hash, data, parent, adopted=False):
     index = repo_index(path)
-    if parent != file_hash:
-        index[parent].append(file_hash)
-        index['current'] = file_hash
-        if file_hash not in index:
-            index[file_hash] = []
-        if adopted:
-            index['adopts'].append((parent, file_hash))
-        write_repo_index(path, index)
-        write_repo_object(path, file_hash, data)
-        return True
-    return False
+    index[parent].append(file_hash)
+    index['current'] = file_hash
+    if file_hash not in index:
+        index[file_hash] = []
+    if adopted:
+        index['adopts'].append((parent, file_hash))
+    write_repo_index(path, index)
+    write_repo_object(path, file_hash, data)
 
 
 def update_index_curr(path, file_hash):
@@ -140,7 +137,7 @@ def get_hash(data):
 def build_bridge(path, data):
     file_hash = get_hash(data)
     parent = get_current_file_hash(path)
-    append_object(path, file_hash, data, parent, adopted=True)
+    append_file_object(path, file_hash, data, parent, adopted=True)
 
 
 def file_hash_exists_in_repo(path, file_hash):
