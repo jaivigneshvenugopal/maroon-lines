@@ -13,9 +13,9 @@ import shutil
 def repo_init(path):
     with open(path, 'r') as f:
         data = f.read()
-    dir_name = hashlib.sha1(path.encode()).hexdigest()
+    file_path_hash = hashlib.sha1(path.encode()).hexdigest()
     file_name = hashlib.sha1(data.encode()).hexdigest()
-    repo_dirs = os.path.join('repos', dir_name[0:2], dir_name[2:], 'objects')
+    repo_dirs = os.path.join('repos', file_path_hash[0:2], file_path_hash[2:], 'objects')
 
     if not os.path.exists(repo_dirs):
         os.makedirs(repo_dirs)
@@ -30,7 +30,7 @@ def repo_init(path):
         }
         index = json.dumps(index)
         binary_index = zlib.compress(index.encode())
-        repo_index = os.path.join('repos', dir_name[0:2], dir_name[2:], 'index')
+        repo_index = os.path.join('repos', file_path_hash[0:2], file_path_hash[2:], 'index')
         with open(repo_index, 'wb') as f:
             f.write(binary_index)
     else:
@@ -39,8 +39,8 @@ def repo_init(path):
 
 def repo_remove(path):
     if repo_exists(path):
-        dir_name = hashlib.sha1(path.encode()).hexdigest()
-        repo_path = os.path.join('repos', dir_name[0:2], dir_name[2:])
+        file_path_hash = hashlib.sha1(path.encode()).hexdigest()
+        repo_path = os.path.join('repos', file_path_hash[0:2], file_path_hash[2:])
         shutil.rmtree(repo_path)
 
 
@@ -50,15 +50,15 @@ def repo_rebuilt(path):
 
 
 def repo_exists(path):
-    dir_name = hashlib.sha1(path.encode()).hexdigest()
-    repo_path = './repos/{}/{}'.format(dir_name[0:2], dir_name[2:])
+    file_path_hash = hashlib.sha1(path.encode()).hexdigest()
+    repo_path = './repos/{}/{}'.format(file_path_hash[0:2], file_path_hash[2:])
     return os.path.exists(repo_path)
 
 
 def repo_path(path):
     if repo_exists(path):
-        dir_name = hashlib.sha1(path.encode()).hexdigest()
-        return './repos/{}/{}'.format(dir_name[0:2], dir_name[2:])
+        file_path_hash = hashlib.sha1(path.encode()).hexdigest()
+        return './repos/{}/{}'.format(file_path_hash[0:2], file_path_hash[2:])
     else:
         raise Exception('Repo does not exist!')
 
@@ -132,3 +132,17 @@ def get_current_file_hash(path):
 
 def get_hash(data):
     return hashlib.sha1(data.encode()).hexdigest()
+
+
+def build_repo_bridge(path, data):
+    file_hash = get_hash(data)
+    parent = get_current_file_hash(path)
+    append_object(path, file_hash, data, parent)
+
+
+def file_hash_exists_in_repo(path, file_hash):
+    file_path_hash = get_hash(path)
+    return os.path.exists(os.path.join('repos', file_path_hash[0:2], file_path_hash[2:], 'objects', file_hash))
+
+
+

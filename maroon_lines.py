@@ -166,9 +166,13 @@ class MaroonLines(QMainWindow):
             if not control.repo_exists(self.file_path):
                 control.repo_init(self.file_path)
 
-            # Account for dead repos with same file path
+            # Account for outdated repos with same file path
             if self.index_current_is_different_from_editor_file():
-                control.repo_rebuilt(self.file_path)
+                file_hash = control.get_hash(self.editor.text)
+                if control.file_hash_exists_in_repo(self.file_path, file_hash):
+                    control.update_index_curr(self.file_path, file_hash)
+                else:
+                    control.build_repo_bridge(self.file_path, file_hash)
                 self.file_hash = control.get_current_file_hash(self.file_path)
 
             self.graph.render_graph(control.repo_index(self.file_path))
