@@ -26,6 +26,7 @@ def repo_init(path):
         index = {
             'root': file_name,
             'current': file_name,
+            'adopts': [],
             file_name: []
         }
         index = json.dumps(index)
@@ -106,13 +107,15 @@ def write_repo_object(path, file_hash, data):
         f.write(data)
 
 
-def append_object(path, file_hash, data, parent):
+def append_object(path, file_hash, data, parent, adopted=False):
     index = repo_index(path)
     if parent != file_hash:
         index[parent].append(file_hash)
         index['current'] = file_hash
         if file_hash not in index:
             index[file_hash] = []
+        if adopted:
+            index['adopts'].append((parent, file_hash))
         write_repo_index(path, index)
         write_repo_object(path, file_hash, data)
         return True
@@ -134,10 +137,10 @@ def get_hash(data):
     return hashlib.sha1(data.encode()).hexdigest()
 
 
-def build_repo_bridge(path, data):
+def build_bridge(path, data):
     file_hash = get_hash(data)
     parent = get_current_file_hash(path)
-    append_object(path, file_hash, data, parent)
+    append_object(path, file_hash, data, parent, adopted=True)
 
 
 def file_hash_exists_in_repo(path, file_hash):

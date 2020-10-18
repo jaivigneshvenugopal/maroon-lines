@@ -172,7 +172,7 @@ class MaroonLines(QMainWindow):
                 if control.file_hash_exists_in_repo(self.file_path, file_hash):
                     control.update_index_curr(self.file_path, file_hash)
                 else:
-                    control.build_repo_bridge(self.file_path, file_hash)
+                    control.build_bridge(self.file_path, self.editor.text)
                 self.file_hash = control.get_current_file_hash(self.file_path)
 
             self.graph.render_graph(control.repo_index(self.file_path))

@@ -30,6 +30,7 @@ class GraphVisualization(QMainWindow):
         self.curr_num_nodes = None
         self.root = None
         self.curr = None
+        self.adopts = None
         self.node_matrix = None
         self.pos_x = None
         self.pos_y = None
@@ -86,16 +87,20 @@ class GraphVisualization(QMainWindow):
         nodes = []
         self.root = self.index['root']
         self.curr = self.index['current']
+        self.adopts = self.index['adopts']
         self.index.pop('root')
         self.index.pop('current')
+        self.index.pop('adopts')
 
         for key, values in self.index.items():
             nodes.append(key)
             for val in values:
                 edges.append((key, val))
+
         self.curr_num_nodes = len(nodes)
         self.graph.add_nodes_from(nodes)
         self.graph.add_edges_from(edges)
+
         for node, node_attrs in self.graph.nodes(data=True):
             if node == self.root:
                 node_attrs['color'] = self.root_color
@@ -107,6 +112,10 @@ class GraphVisualization(QMainWindow):
 
         for u, v, attrs in self.graph.edges.data():
             attrs['width'] = 1.5
+
+        for edge in self.adopts:
+            edge_attr = self.graph.edges[edge[0], edge[1]]
+            edge_attr['style'] = 'dotted'
 
         self.plot = plot_network(self.graph, layout=self.sequential_layout, node_style=use_attributes(), edge_style=use_attributes())
         self.plot.set_picker(1)
