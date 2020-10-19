@@ -28,8 +28,8 @@ class MaroonLines(QMainWindow):
         self.file_hash = None
 
         # Widget-related properties
-        self.layout = None
-        self.central_widget = None
+        self.layout = QHBoxLayout()
+        self.central_widget = QWidget()
         self.menu_bar = MenuBar()
         self.editor = Editor()
         self.graph = GraphVisualization()
@@ -52,7 +52,7 @@ class MaroonLines(QMainWindow):
         self.configure_graph()
         self.configure_and_show_frame()
 
-    # Event filter for Editor to ignore certain shortcuts
+    # Event filter for Editor to ignore certain shortcuts pertaining to Graph
     def eventFilter(self, source, event):
         if event.type() == QEvent.KeyPress and event.modifiers() == Qt.AltModifier:
             key = event.key()
@@ -66,9 +66,7 @@ class MaroonLines(QMainWindow):
 
     # Define layout and set a central widget to QMainWindow
     def configure_layout_and_central_widget(self):
-        self.layout = QHBoxLayout()
         self.layout.setContentsMargins(0, 0, 0, 0)
-        self.central_widget = QWidget()
         self.central_widget.setStyleSheet("background-color: #f0b034")
         self.central_widget.setLayout(self.layout)
         self.setCentralWidget(self.central_widget)
@@ -139,7 +137,7 @@ class MaroonLines(QMainWindow):
         self.graph.curr_node_changed.connect(self.update_editor_current_file)
         self.graph.num_nodes_changed.connect(self.update_status_bar_num_nodes)
         self.layout.addWidget(self.graph, 18)
-        self.graph.render_graph(None)
+        self.graph.render_graph()
 
     # Define the geometry of the application and show it
     def configure_and_show_frame(self):
@@ -149,45 +147,32 @@ class MaroonLines(QMainWindow):
 
     # Refactored
     def handle_new_action(self):
-        self.file_path = None
-        self.file_hash = None
+        self.update_file_path_and_hash()
         self.editor.clear()
-        self.graph.render_graph(None)
+        self.graph.render_graph()
 
     # Refactored
     def handle_open_action(self):
         file_info = QFileDialog.getOpenFileName(self, 'Open File')
         file_path, file_type = str(file_info[0]), file_info[1]
         if file_path:
-            self.file_path = file_path
-            self.load_file_to_editor(file_path)
-
-            # Instantiate new repo if needed
-            if not control.repo_exists(self.file_path):
-                control.repo_init(self.file_path)
-
-            # Account for outdated repos with same file path
-            if self.index_current_is_different_from_file_in_editor():
-                file_hash = control.get_hash(self.editor.text)
-                if control.file_hash_exists_in_repo(self.file_path, file_hash):
-                    control.update_index_curr(self.file_path, file_hash)
-                else:
-                    control.build_bridge(self.file_path, self.editor.text)
-
-            self.file_hash = control.get_current_file_hash(self.file_path)
+            self.load_file(file_path)
+            self.update_file_path_and_hash(file_path)
+            self.update_repo()
             self.graph.render_graph(control.repo_index(self.file_path))
 
     # Refactored
     def handle_save_action(self):
         if self.file_path:
-            data = self.editor.text
-            with open(self.file_path, 'w') as f:
-                f.write(data)
-            file_hash = control.get_hash(data)
+            file_hash = control.get_hash(self.editor.text)
+
             if control.file_hash_exists_in_repo(self.file_path, file_hash):
                 control.update_index_curr(self.file_path, file_hash)
             else:
-                control.append_file_object(self.file_path, file_hash, data, self.file_hash)
+                control.append_file_object(self.file_path, file_hash=file_hash, data=self.editor.text, parent=self.file_hash)
+                with open(self.file_path, 'w') as f:
+                    f.write(self.editor.text)
+
             self.file_hash = file_hash
             self.graph.render_graph(control.repo_index(self.file_path))
         else:
@@ -195,14 +180,11 @@ class MaroonLines(QMainWindow):
 
     def handle_save_as_action(self):
         file_info = QFileDialog.getSaveFileName(self, 'Save As...')
-        name, file_type = str(file_info[0]), file_info[1]
-        if name != '':
-            self.file_path = name
-            text = self.editor.text
-            with open(name, 'w', encoding="utf8") as f:
-                f.write(text)
-            control.repo_init(self.file_path)
-            self.file_hash = control.get_current_file_hash(self.file_path)
+        file_path, file_type = str(file_info[0]), file_info[1]
+        if file_path:
+            self.store_file(file_path)
+            self.update_file_path_and_hash(file_path)
+            self.update_repo()
             self.graph.render_graph(control.repo_index(self.file_path))
 
     # Refactored
@@ -290,13 +272,35 @@ class MaroonLines(QMainWindow):
         self.editor.text = control.read_repo_object(self.file_path, file_hash)
 
     # Helper functions
-    def load_file_to_editor(self, file_path):
+    def load_file(self, file_path):
         with open(file_path, 'r') as f:
-            text = f.read()
-            self.editor.text = text
+            self.editor.text = f.read()
+
+    def store_file(self, file_path):
+        with open(file_path, 'w') as f:
+            f.write(self.editor.text)
+
+    def update_file_path_and_hash(self, file_path=None):
+        self.file_path = file_path
+        if self.file_path:
+            self.file_hash = control.get_hash(self.editor.text)
+        else:
+            self.file_hash = None
 
     def index_current_is_different_from_file_in_editor(self):
         return control.get_current_file_hash(self.file_path) != control.get_hash(self.editor.text)
+
+    def update_repo(self):
+        # Instantiate new repo if needed
+        if not control.repo_exists(self.file_path):
+            control.repo_init(self.file_path)
+
+        # Account for outdated repos with same file path
+        if self.index_current_is_different_from_file_in_editor():
+            if control.file_hash_exists_in_repo(self.file_path, self.file_hash):
+                control.update_index_curr(self.file_path, self.file_hash)
+            else:
+                control.build_bridge(self.file_path, self.editor.text)
 
 
 if __name__ == '__main__':
