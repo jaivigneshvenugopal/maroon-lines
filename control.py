@@ -38,7 +38,16 @@ def repo_init(path):
         raise Exception('Repo already exists!')
 
 
-def repo_remove(path):
+def copy_repo(old_path, new_path):
+    if old_path != new_path:
+        remove_repo(new_path)
+        old_path_hash = hashlib.sha1(old_path.encode()).hexdigest()
+        new_path_hash = hashlib.sha1(new_path.encode()).hexdigest()
+        shutil.copytree(os.path.join('repos', old_path_hash[0:2], old_path_hash[2:]),
+                        os.path.join('repos', new_path_hash[0:2], new_path_hash[2:]))
+
+
+def remove_repo(path):
     if repo_exists(path):
         file_path_hash = hashlib.sha1(path.encode()).hexdigest()
         repo_path = os.path.join('repos', file_path_hash[0:2], file_path_hash[2:])
@@ -46,7 +55,7 @@ def repo_remove(path):
 
 
 def repo_rebuilt(path):
-    repo_remove(path)
+    remove_repo(path)
     repo_init(path)
 
 
@@ -107,7 +116,7 @@ def write_repo_object(path, file_hash, data):
         f.write(data)
 
 
-def append_file(path, file_hash, data, parent, adopted=False):
+def append_file_to_index(path, file_hash, data, parent, adopted=False):
     index = repo_index(path)
     index[parent].append(file_hash)
     index['curr'] = file_hash
@@ -137,7 +146,7 @@ def get_hash(data):
 def build_bridge(path, data):
     file_hash = get_hash(data)
     parent = get_curr_file_hash(path)
-    append_file(path, file_hash, data, parent, adopted=True)
+    append_file_to_index(path, file_hash, data, parent, adopted=True)
 
 
 def file_hash_exists_in_repo(path, file_hash):

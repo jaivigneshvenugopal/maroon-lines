@@ -56,7 +56,7 @@ class GraphVisualization(QMainWindow):
         self.setCentralWidget(self.canvas)
         self.show()
 
-    def render_graph(self, index=None):
+    def render_graph(self, index):
         self.index = index
         if self.index:
             eval('self.draw_graph()')

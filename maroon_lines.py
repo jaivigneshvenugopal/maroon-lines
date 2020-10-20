@@ -139,7 +139,7 @@ class MaroonLines(QMainWindow):
         self.graph.curr_node_changed.connect(self.load_repo_file)
         self.graph.num_nodes_changed.connect(self.update_status_bar_num_nodes)
         self.layout.addWidget(self.graph, 18)
-        self.graph.render_graph()
+        self.graph.render_graph(index=None)
 
     # Define the geometry of the application and show it
     def configure_and_show_frame(self):
@@ -149,9 +149,9 @@ class MaroonLines(QMainWindow):
 
     # Refactored
     def handle_new_action(self):
-        self.update_file_path_and_hash()
+        self.update_file_path_and_hash(file_path=None)
         self.editor.clear()
-        self.graph.render_graph()
+        self.graph.render_graph(index=None)
 
     # Refactored
     def handle_open_action(self):
@@ -160,7 +160,7 @@ class MaroonLines(QMainWindow):
         if file_path:
             self.load_file(file_path)
             self.update_file_path_and_hash(file_path)
-            self.update_index()
+            self.instantiate_index()
             self.graph.render_graph(repo_index(self.file_path))
 
     # Refactored
@@ -172,9 +172,8 @@ class MaroonLines(QMainWindow):
             if file_hash_exists_in_repo(self.file_path, file_hash):
                 update_index_curr(self.file_path, file_hash)
             else:
-                append_file(self.file_path, file_hash=file_hash, data=self.editor.text, parent=self.file_hash)
-                with open(self.file_path, 'w') as f:
-                    f.write(self.editor.text)
+                append_file_to_index(self.file_path, file_hash=file_hash, data=self.editor.text, parent=self.file_hash)
+                self.store_file(self.file_path)
 
             self.file_hash = file_hash
             self.graph.render_graph(repo_index(self.file_path))
@@ -185,8 +184,10 @@ class MaroonLines(QMainWindow):
         file_path, file_type = str(file_info[0]), file_info[1]
         if file_path:
             self.store_file(file_path)
+            if self.new_file_built_upon_existing_one(file_path):
+                self.port_existing_repo_to_new_path(file_path)
             self.update_file_path_and_hash(file_path)
-            self.update_index()
+            self.instantiate_index()
             self.graph.render_graph(repo_index(self.file_path))
 
     # Refactored
@@ -282,7 +283,7 @@ class MaroonLines(QMainWindow):
         with open(file_path, 'w') as f:
             f.write(self.editor.text)
 
-    def update_file_path_and_hash(self, file_path=None):
+    def update_file_path_and_hash(self, file_path):
         self.file_path = file_path
         if self.file_path:
             self.file_hash = get_hash(self.editor.text)
@@ -292,7 +293,7 @@ class MaroonLines(QMainWindow):
     def index_curr_is_different_from_file_in_editor(self):
         return get_curr_file_hash(self.file_path) != get_hash(self.editor.text)
 
-    def update_index(self):
+    def instantiate_index(self):
         # Instantiate new repo if needed
         if not repo_exists(self.file_path):
             repo_init(self.file_path)
@@ -303,6 +304,12 @@ class MaroonLines(QMainWindow):
                 update_index_curr(self.file_path, self.file_hash)
             else:
                 build_bridge(self.file_path, self.editor.text)
+
+    def port_existing_repo_to_new_path(self, new_path):
+        copy_repo(old_path=self.file_path, new_path=new_path)
+
+    def new_file_built_upon_existing_one(self, new_path):
+        return self.file_path and self.file_path != new_path
 
 
 if __name__ == '__main__':
