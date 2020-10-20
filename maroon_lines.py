@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from graph_visualization import GraphVisualization
-from control import *
+from repository_control_utils import *
 from editor import Editor
 from IPython import embed
 
@@ -169,10 +169,10 @@ class MaroonLines(QMainWindow):
             self.handle_save_as_action()
         else:
             file_hash = get_hash(self.editor.text)
-            if file_hash_exists_in_repo(self.file_path, file_hash):
-                update_index_curr(self.file_path, file_hash)
+            if repo_object_exists(self.file_path, file_hash):
+                update_repo_index_curr(self.file_path, file_hash)
             else:
-                append_file_to_index(self.file_path, file_hash=file_hash, data=self.editor.text, parent=self.file_hash)
+                append_repo_object(self.file_path, data=self.editor.text, parent=self.file_hash)
                 self.store_file(self.file_path)
 
             self.file_hash = file_hash
@@ -269,10 +269,10 @@ class MaroonLines(QMainWindow):
         self.status_bar.children()[2].setText('Versions: {}'.format(num_nodes))
 
     def load_repo_file(self, file_hash):
-        update_index_curr(self.file_path, file_hash)
+        update_repo_index_curr(self.file_path, file_hash)
         self.file_hash = file_hash
         self.editor.clear()
-        self.editor.text = read_repo_file(self.file_path, file_hash)
+        self.editor.text = repo_object(self.file_path, file_hash)
 
     # Helper functions
     def load_file(self, file_path):
@@ -291,17 +291,17 @@ class MaroonLines(QMainWindow):
             self.file_hash = None
 
     def index_curr_is_different_from_file_in_editor(self):
-        return get_curr_file_hash(self.file_path) != get_hash(self.editor.text)
+        return repo_index_curr(self.file_path) != get_hash(self.editor.text)
 
     def instantiate_index(self):
         # Instantiate new repo if needed
         if not repo_exists(self.file_path):
-            repo_init(self.file_path)
+            init_repo(self.file_path, self.editor.text)
 
         # Account for outdated repos with same file path
         if self.index_curr_is_different_from_file_in_editor():
-            if file_hash_exists_in_repo(self.file_path, self.file_hash):
-                update_index_curr(self.file_path, self.file_hash)
+            if repo_object_exists(self.file_path, self.file_hash):
+                update_repo_index_curr(self.file_path, self.file_hash)
             else:
                 build_bridge(self.file_path, self.editor.text)
 
