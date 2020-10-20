@@ -34,7 +34,6 @@ class MaroonLines(QMainWindow):
         self.editor = Editor()
         self.graph = GraphVisualization()
         self.status_bar = QStatusBar()
-        self.status_bar_right_corner_label = None
 
         # Shortcuts and corresponding functions
         self.shortcut_arrow_functions = {
@@ -123,13 +122,13 @@ class MaroonLines(QMainWindow):
                 font: 16px;
             }
         """)
-        self.status_bar_right_corner_label = QLabel()
-        self.status_bar_right_corner_label.setStyleSheet("""
+        right_corner_label = QLabel()
+        right_corner_label.setStyleSheet("""
             QLabel {
                 color: rgb(205,215,211)
             }
         """)
-        self.status_bar.addPermanentWidget(self.status_bar_right_corner_label)
+        self.status_bar.addPermanentWidget(right_corner_label)
         self.update_status_bar_num_lines()
 
     # Refactored
@@ -263,7 +262,7 @@ class MaroonLines(QMainWindow):
         self.status_bar.showMessage('Lines: {}'.format(len(self.editor.lines)))
 
     def update_status_bar_num_nodes(self, num_nodes):
-        self.status_bar_right_corner_label.setText('Versions: {}'.format(num_nodes))
+        self.status_bar.children()[2].setText('Versions: {}'.format(num_nodes))
 
     def update_editor_current_file(self, file_hash):
         control.update_index_curr(self.file_path, file_hash)
