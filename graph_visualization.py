@@ -86,10 +86,10 @@ class GraphVisualization(QMainWindow):
         edges = []
         nodes = []
         self.root = self.index['root']
-        self.curr = self.index['current']
+        self.curr = self.index['curr']
         self.adopts = self.index['adopts']
         self.index.pop('root')
-        self.index.pop('current')
+        self.index.pop('curr')
         self.index.pop('adopts')
 
         for key, values in self.index.items():

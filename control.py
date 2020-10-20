@@ -25,7 +25,7 @@ def repo_init(path):
 
         index = {
             'root': file_name,
-            'current': file_name,
+            'curr': file_name,
             'adopts': [],
             file_name: []
         }
@@ -85,7 +85,7 @@ def repo_objects_path(path):
     return repo_objects_dir
 
 
-def read_repo_object(path, file_hash):
+def read_repo_file(path, file_hash):
     text = None
     with open(os.path.join(repo_objects_path(path), file_hash), 'rb') as f:
         binary_data = f.read()
@@ -107,10 +107,10 @@ def write_repo_object(path, file_hash, data):
         f.write(data)
 
 
-def append_file_object(path, file_hash, data, parent, adopted=False):
+def append_file(path, file_hash, data, parent, adopted=False):
     index = repo_index(path)
     index[parent].append(file_hash)
-    index['current'] = file_hash
+    index['curr'] = file_hash
     if file_hash not in index:
         index[file_hash] = []
     if adopted:
@@ -121,13 +121,13 @@ def append_file_object(path, file_hash, data, parent, adopted=False):
 
 def update_index_curr(path, file_hash):
     index = repo_index(path)
-    index['current'] = file_hash
+    index['curr'] = file_hash
     write_repo_index(path, index)
 
 
-def get_current_file_hash(path):
+def get_curr_file_hash(path):
     index = repo_index(path)
-    return index['current']
+    return index['curr']
 
 
 def get_hash(data):
@@ -136,8 +136,8 @@ def get_hash(data):
 
 def build_bridge(path, data):
     file_hash = get_hash(data)
-    parent = get_current_file_hash(path)
-    append_file_object(path, file_hash, data, parent, adopted=True)
+    parent = get_curr_file_hash(path)
+    append_file(path, file_hash, data, parent, adopted=True)
 
 
 def file_hash_exists_in_repo(path, file_hash):
