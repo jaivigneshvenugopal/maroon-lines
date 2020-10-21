@@ -2,7 +2,7 @@ import sys
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
-from graph_visualization import GraphVisualization
+from timeline import Timeline
 from repository_control_utils import *
 from editor import Editor
 from IPython import embed
@@ -35,7 +35,7 @@ class MaroonLines(QMainWindow):
         self.central_widget = QWidget()
         self.menu_bar = MenuBar()
         self.editor = Editor()
-        self.graph = GraphVisualization()
+        self.graph = Timeline()
         self.status_bar = QStatusBar()
 
         # Shortcuts and corresponding functions
