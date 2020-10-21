@@ -80,12 +80,14 @@ class MaroonLines(QMainWindow):
             QMenuBar {
                 background-color: rgb(51, 51, 61);
                 color: rgb(205,215,211);
-                font: 16px;
+                font: 17px;
+                min-height: 35px;
             }
 
             QMenuBar::item {
                 background-color: rgb(51, 51, 61);
                 color: rgb(205,215,211);
+                margin: 0px;
             }
 
             QMenuBar::item::selected {
@@ -122,7 +124,7 @@ class MaroonLines(QMainWindow):
             QStatusBar {
                 background: rgb(51, 51, 61);
                 color: rgb(205,215,211);
-                font: 16px;
+                font: 17px;
             }
         """)
         right_corner_label = QLabel()
