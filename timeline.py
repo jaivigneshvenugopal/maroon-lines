@@ -62,10 +62,9 @@ class Timeline(QMainWindow):
 
     def render_graph(self, index):
         self.index = index
-        eval('self.init_graph()')
-        self.num_nodes_changed.emit(str(self.num_nodes))
+        self.build_graph()
 
-    def init_graph(self):
+    def build_graph(self):
         self.figure.clf()
         self.graph = nx.DiGraph()
 
@@ -78,6 +77,7 @@ class Timeline(QMainWindow):
             self.assign_node_positions()
             self.num_nodes = len(self.graph.nodes())
 
+        self.num_nodes_changed.emit(str(self.num_nodes))
         self.configure_node_and_edge_aesthetics()
         self.plot_graph()
 
@@ -88,7 +88,7 @@ class Timeline(QMainWindow):
                                  node_style=use_attributes(),
                                  edge_style=use_attributes())
         self.plot.set_picker(1)
-        self.plot.axes.set_position([0.1, 0, 0.8, 1])
+        self.plot.axes.set_position([0.05, 0, 0.9, 1])
         self.canvas.draw_idle()
 
     def refresh_graph(self):
