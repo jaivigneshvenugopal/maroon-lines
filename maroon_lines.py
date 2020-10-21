@@ -209,16 +209,17 @@ class MaroonLines(QMainWindow):
         self.editor.setFont(QFont('Fire Code', 16))
 
         # Configure editor scroll bar
+        self.editor.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         scroll_bar = self.editor.verticalScrollBar()
         scroll_bar.setStyleSheet(
             """QScrollBar:vertical {
-                    width: 11px;
+                    width: 12px;
                     margin: 0;
                     background: #fcfcfc;
                   }
 
                   QScrollBar::handle:vertical {
-                    border: 11px solid #d9d9d9;
+                    border: 12px solid #d9d9d9;
                     background: #33333d;
                     min-height: 10px;
                   }
