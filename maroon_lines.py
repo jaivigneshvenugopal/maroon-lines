@@ -204,7 +204,7 @@ class MaroonLines(QMainWindow):
 
         # Configure editor style
         self.editor.setStyleSheet("background-color: #fcfcfc")
-        self.editor.setFont(QFont('Fire Code', 14))
+        self.editor.setFont(QFont('Fire Code', 16))
 
         # Configure editor scroll bar
         scroll_bar = self.editor.verticalScrollBar()
