@@ -170,9 +170,9 @@ class MaroonLines(QMainWindow):
         else:
             file_hash = get_hash(self.editor.text)
             if repo_object_exists(self.file_path, file_hash):
-                update_repo_index_curr(self.file_path, file_hash)
+                update_repo_index_curr_object(self.file_path, file_hash)
             else:
-                append_repo_object(self.file_path, data=self.editor.text, parent=self.file_hash)
+                append_repo_object(self.file_path, file_data=self.editor.text, parent_file_hash=self.file_hash)
                 self.store_file(self.file_path)
 
             self.file_hash = file_hash
@@ -269,7 +269,7 @@ class MaroonLines(QMainWindow):
         self.status_bar.children()[2].setText('Versions: {}'.format(num_nodes))
 
     def load_repo_file(self, file_hash):
-        update_repo_index_curr(self.file_path, file_hash)
+        update_repo_index_curr_object(self.file_path, file_hash)
         self.file_hash = file_hash
         self.editor.clear()
         self.editor.text = repo_object(self.file_path, file_hash)
@@ -291,7 +291,7 @@ class MaroonLines(QMainWindow):
             self.file_hash = None
 
     def index_curr_is_different_from_file_in_editor(self):
-        return repo_index_curr(self.file_path) != get_hash(self.editor.text)
+        return repo_index_curr_object(self.file_path) != get_hash(self.editor.text)
 
     def instantiate_index(self):
         # Instantiate new repo if needed
@@ -301,15 +301,15 @@ class MaroonLines(QMainWindow):
         # Account for outdated repos with same file path
         if self.index_curr_is_different_from_file_in_editor():
             if repo_object_exists(self.file_path, self.file_hash):
-                update_repo_index_curr(self.file_path, self.file_hash)
+                update_repo_index_curr_object(self.file_path, self.file_hash)
             else:
                 build_bridge(self.file_path, self.editor.text)
 
-    def port_existing_repo_to_new_path(self, new_path):
-        copy_repo(old_path=self.file_path, new_path=new_path)
+    def port_existing_repo_to_new_path(self, new_file_path):
+        copy_repo(old_file_path=self.file_path, new_file_path=new_file_path)
 
-    def new_file_built_upon_existing_one(self, new_path):
-        return self.file_path and self.file_path != new_path
+    def new_file_built_upon_existing_one(self, new_file_path):
+        return self.file_path and self.file_path != new_file_path
 
 
 if __name__ == '__main__':
