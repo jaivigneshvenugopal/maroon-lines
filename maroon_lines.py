@@ -58,7 +58,7 @@ class MaroonLines(QMainWindow):
     def eventFilter(self, source, event):
         if event.type() == QEvent.KeyPress and event.modifiers() == Qt.AltModifier:
             key = event.key()
-            if key in self.shortcut_arrow_functions:
+            if self.file_path and key in self.shortcut_arrow_functions:
                 traverse = self.shortcut_arrow_functions[key]
                 traverse()
                 return True
