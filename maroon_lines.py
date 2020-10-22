@@ -344,6 +344,7 @@ class MaroonLines(QMainWindow):
         self.file_hash = file_hash
         self.editor.clear()
         self.editor.text = repo_object(self.file_path, file_hash)
+        self.store_file(self.file_path)
 
     # Helper functions
     def load_file(self, file_path):
