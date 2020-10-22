@@ -134,7 +134,7 @@ class Timeline(QMainWindow):
                 edge_attr['style'] = 'dotted'
 
     def pick_event(self, event):
-        if hasattr(event, 'nodes') and event.nodes and event.nodes[0] == self.curr:
+        if hasattr(event, 'nodes') and event.nodes and event.nodes[0] != self.curr:
             self.switch_node_colors(event.nodes[0])
 
     def sequential_layout(self, graph):
