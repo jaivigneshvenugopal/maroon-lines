@@ -107,7 +107,6 @@ class MaroonLines(QMainWindow):
                 background-color: rgb(60, 60, 60);
             }
         """)
-
         self.configure_menu_bar_actions()
 
     def configure_menu_bar_actions(self):
@@ -147,6 +146,7 @@ class MaroonLines(QMainWindow):
                 font: 17px;
             }
         """)
+
         self.status_bar_num_lines_label = QLabel()
         self.status_bar_num_lines_label.setAlignment(Qt.AlignLeft)
         self.status_bar_num_lines_label.setStyleSheet("""
@@ -162,6 +162,7 @@ class MaroonLines(QMainWindow):
                 color: rgb(205,215,211)
             }
         """)
+
         self.status_bar_file_path_label = QLabel()
         self.status_bar_file_path_label.setAlignment(Qt.AlignCenter)
         self.status_bar_file_path_label.setStyleSheet("""
@@ -169,9 +170,11 @@ class MaroonLines(QMainWindow):
                 color: rgb(205,215,211)
             }
         """)
+
         self.status_bar.addPermanentWidget(self.status_bar_num_lines_label, 30)
         self.status_bar.addPermanentWidget(self.status_bar_file_path_label, 100)
         self.status_bar.addPermanentWidget(self.status_bar_num_nodes_label, 30)
+
         self.update_status_bar_file_path()
         self.update_status_bar_num_lines()
 
@@ -201,7 +204,7 @@ class MaroonLines(QMainWindow):
         if file_path:
             self.load_file(file_path)
             self.update_file_path_and_hash(file_path)
-            self.instantiate_index()
+            self.update_index()
             self.graph.render_graph(repo_index(self.file_path))
 
     # Refactored
@@ -223,26 +226,36 @@ class MaroonLines(QMainWindow):
     def handle_save_as_action(self):
         file_info = QFileDialog.getSaveFileName(self, 'Save As...')
         file_path, file_type = str(file_info[0]), file_info[1]
-        if file_path:
-            self.store_file(file_path)
-            if self.new_file_is_built_upon_existing_one(file_path):
-                self.port_existing_repo_to_new_path(file_path)
-            self.update_file_path_and_hash(file_path)
-            self.instantiate_index()
-            self.graph.render_graph(repo_index(self.file_path))
+        if not file_path:
+            return
+
+        if self.file_path == file_path:
+            self.handle_save_action()
+            return
+
+        if self.file_path and self.file_path != file_path:
+            copy_repo(old_file_path=self.file_path, new_file_path=file_path)
+
+        self.store_file(file_path)
+        self.update_file_path_and_hash(file_path)
+        self.update_index()
+        self.graph.render_graph(repo_index(self.file_path))
 
     def handle_rename_move_action(self):
-        if self.file_path:
-            file_info = QFileDialog.getSaveFileName(self, 'Move/Rename')
-            file_path, file_type = str(file_info[0]), file_info[1]
-            if file_path:
-                print(file_path)
-                self.store_file(file_path)
-                self.port_existing_repo_to_new_path(file_path)
-                self.remove_old_path_and_old_repo()
-                self.update_file_path_and_hash(file_path)
-                self.instantiate_index()
-                self.graph.render_graph(repo_index(self.file_path))
+        if not self.file_path:
+            return
+
+        file_info = QFileDialog.getSaveFileName(self, 'Move/Rename')
+        file_path, file_type = str(file_info[0]), file_info[1]
+
+        if not file_path or self.file_path == file_path:
+            return
+
+        self.store_file(file_path)
+        self.move_file(file_path)
+        self.update_file_path_and_hash(file_path)
+        self.update_index()
+        self.graph.render_graph(repo_index(self.file_path))
 
     # Refactored
     def handle_exit_action(self):
@@ -324,7 +337,7 @@ class MaroonLines(QMainWindow):
         self.status_bar_num_nodes_label.setText('Versions: {}'.format(num_nodes))
 
     def update_status_bar_file_path(self):
-        self.status_bar_file_path_label.setText(self.file_path or 'Untitled')
+        self.status_bar_file_path_label.setText(self.file_path or 'untitled')
 
     def load_repo_file(self, file_hash):
         update_repo_index_curr_object(self.file_path, file_hash)
@@ -351,27 +364,23 @@ class MaroonLines(QMainWindow):
     def index_curr_is_different_from_file_in_editor(self):
         return repo_index_curr_object(self.file_path) != get_hash(self.editor.text)
 
-    def instantiate_index(self):
-        # Instantiate new repo if needed
+    def update_index(self):
         if not repo_exists(self.file_path):
             init_repo(self.file_path, self.editor.text)
 
-        # Account for outdated repos with same file path
         if self.index_curr_is_different_from_file_in_editor():
             if repo_object_exists(self.file_path, self.file_hash):
                 update_repo_index_curr_object(self.file_path, self.file_hash)
             else:
                 build_bridge(self.file_path, self.editor.text)
 
-    def port_existing_repo_to_new_path(self, new_file_path):
-        copy_repo(old_file_path=self.file_path, new_file_path=new_file_path)
+    def move_file(self, file_path):
+        copy_repo(old_file_path=self.file_path, new_file_path=file_path)
+        self.remove_existing_copy_of_file_and_repo()
 
-    def new_file_is_built_upon_existing_one(self, new_file_path):
-        return self.file_path and self.file_path != new_file_path
-
-    def remove_old_path_and_old_repo(self):
-        remove_repo(self.file_path)
+    def remove_existing_copy_of_file_and_repo(self):
         self.remove_file(self.file_path)
+        remove_repo(self.file_path)
 
     def remove_file(self, file_path):
         if os.path.exists(file_path):
