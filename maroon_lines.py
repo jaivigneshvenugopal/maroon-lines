@@ -79,6 +79,25 @@ class MaroonLines(QMainWindow):
                 return False
         return False
 
+    def closeEvent(self, event):
+        if (not self.file_path and not self.editor.text) or \
+                (self.file_path and self.file_hash == get_hash(self.editor.text)):
+            event.accept()
+            return
+
+        dialog_ans = QMessageBox.question(self, "Maroon Lines", "Do you want to save your changes?",
+                                          QMessageBox.Save |QMessageBox.Cancel | QMessageBox.Close)
+
+        if dialog_ans == QMessageBox.Cancel:
+            event.ignore()
+            return
+
+        if dialog_ans == QMessageBox.Save:
+            self.handle_save_action()
+
+        event.accept()
+        return
+
     # Define layout and set a central widget to QMainWindow
     def configure_layout_and_central_widget(self):
         self.layout.setContentsMargins(0, 0, 0, 0)
@@ -259,7 +278,7 @@ class MaroonLines(QMainWindow):
 
     # Refactored
     def handle_exit_action(self):
-        sys.exit()
+        self.close()
 
     # Instantiate editor
     def configure_editor(self):
