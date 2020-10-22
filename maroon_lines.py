@@ -108,6 +108,9 @@ class MaroonLines(QMainWindow):
             }
         """)
 
+        self.configure_menu_bar_actions()
+
+    def configure_menu_bar_actions(self):
         menu = self.menu_bar.addMenu('File')
 
         new_action = menu.addAction('New')
@@ -125,6 +128,10 @@ class MaroonLines(QMainWindow):
         save_as_action = menu.addAction('Save As...')
         save_as_action.setShortcut("Shift+Ctrl+S")
         save_as_action.triggered.connect(self.handle_save_as_action)
+
+        rename_move_action = menu.addAction('Move/Rename')
+        rename_move_action.setShortcut("Ctrl+M")
+        rename_move_action.triggered.connect(self.handle_rename_move_action)
 
         exit_action = menu.addAction('Exit')
         exit_action.setShortcut("Ctrl+W")
@@ -218,11 +225,24 @@ class MaroonLines(QMainWindow):
         file_path, file_type = str(file_info[0]), file_info[1]
         if file_path:
             self.store_file(file_path)
-            if self.new_file_built_upon_existing_one(file_path):
+            if self.new_file_is_built_upon_existing_one(file_path):
                 self.port_existing_repo_to_new_path(file_path)
             self.update_file_path_and_hash(file_path)
             self.instantiate_index()
             self.graph.render_graph(repo_index(self.file_path))
+
+    def handle_rename_move_action(self):
+        if self.file_path:
+            file_info = QFileDialog.getSaveFileName(self, 'Move/Rename')
+            file_path, file_type = str(file_info[0]), file_info[1]
+            if file_path:
+                print(file_path)
+                self.store_file(file_path)
+                self.port_existing_repo_to_new_path(file_path)
+                self.remove_old_path_and_old_repo()
+                self.update_file_path_and_hash(file_path)
+                self.instantiate_index()
+                self.graph.render_graph(repo_index(self.file_path))
 
     # Refactored
     def handle_exit_action(self):
@@ -346,8 +366,18 @@ class MaroonLines(QMainWindow):
     def port_existing_repo_to_new_path(self, new_file_path):
         copy_repo(old_file_path=self.file_path, new_file_path=new_file_path)
 
-    def new_file_built_upon_existing_one(self, new_file_path):
+    def new_file_is_built_upon_existing_one(self, new_file_path):
         return self.file_path and self.file_path != new_file_path
+
+    def remove_old_path_and_old_repo(self):
+        remove_repo(self.file_path)
+        self.remove_file(self.file_path)
+
+    def remove_file(self, file_path):
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        else:
+            raise Exception('File does not exist to move/rename')
 
 
 if __name__ == '__main__':
