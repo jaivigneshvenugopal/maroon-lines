@@ -6,8 +6,9 @@ import shutil
 from IPython import embed
 
 REPOS = 'repos'
-OBJECTS = 'objects'
+KEY = 'key'
 INDEX = 'index'
+OBJECTS = 'objects'
 
 INDEX_CURR = 'curr'
 INDEX_ROOT = 'root'
@@ -22,6 +23,7 @@ def init_repo(file_path, file_data):
         raise Exception('Repo already exists')
 
     os.makedirs(repo_objects_path(file_path))
+    write_repo_key(file_path)
     write_repo_object(file_path, file_data)
     write_repo_index(file_path, build_index_dict(file_data))
 
@@ -33,6 +35,7 @@ def copy_repo(old_file_path, new_file_path):
     if old_file_path != new_file_path:
         remove_repo(new_file_path)
         shutil.copytree(repo_path(old_file_path), repo_path(new_file_path))
+        write_repo_key(new_file_path)
 
 
 def remove_repo(file_path):
@@ -49,12 +52,27 @@ def repo_path(file_path):
     return os.path.join(REPOS, file_path_hash[0:2], file_path_hash[2:])
 
 
+def repo_key_path(file_path):
+    return os.path.join(repo_path(file_path), KEY)
+
+
 def repo_index_path(file_path):
     return os.path.join(repo_path(file_path), INDEX)
 
 
 def repo_objects_path(file_path):
     return os.path.join(repo_path(file_path), OBJECTS)
+
+
+def repo_key(file_path):
+    with open(repo_key_path(file_path), 'r') as f:
+        key = f.read()
+    return key
+
+
+def write_repo_key(file_path):
+    with open(repo_key_path(file_path), 'w') as f:
+        f.write(file_path)
 
 
 def repo_index(file_path):
