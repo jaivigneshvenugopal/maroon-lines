@@ -85,18 +85,34 @@ class MaroonLines(QMainWindow):
             event.accept()
             return
 
-        dialog_ans = QMessageBox.question(self, "Maroon Lines", "Do you want to save your changes?",
-                                          QMessageBox.Save |QMessageBox.Cancel | QMessageBox.Close)
+        clicked_button = self.display_dialog_box()
 
-        if dialog_ans == QMessageBox.Cancel:
+        if clicked_button == QMessageBox.Cancel:
             event.ignore()
-            return
-
-        if dialog_ans == QMessageBox.Save:
+        elif clicked_button == QMessageBox.Close:
+            event.accept()
+        elif clicked_button == QMessageBox.Save:
             self.handle_save_action()
-
-        event.accept()
+            event.accept()
         return
+
+    @staticmethod
+    def display_dialog_box():
+        dialog_box = QMessageBox()
+        dialog_box.setStyleSheet("""
+            QMessageBox {
+                background: rgb(51, 51, 61);
+                width: 500px;
+            }
+            QMessageBox QLabel {
+                color: rgb(205,215,211);
+                font: 17px;
+            }
+        """)
+        dialog_box.setWindowTitle('Maroon Lines')
+        dialog_box.setText('Do you want to save your changes?')
+        dialog_box.setStandardButtons(QMessageBox.Close | QMessageBox.Cancel | QMessageBox.Save)
+        return dialog_box.exec_()
 
     # Define layout and set a central widget to QMainWindow
     def configure_layout_and_central_widget(self):
