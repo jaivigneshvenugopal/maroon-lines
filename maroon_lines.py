@@ -2,21 +2,13 @@ import sys
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
-from timeline import Timeline
+
 from repository_control_utils import *
 from editor import Editor
+from timeline import Timeline
+from dialog import Dialog
+from menu_bar import MenuBar
 from IPython import embed
-
-
-class MenuBar(QMenuBar):
-    def __init__(self):
-        super().__init__()
-        self.installEventFilter(self)
-
-    def eventFilter(self, source, event):
-        if event.type() == QEvent.KeyRelease and event.modifiers() == Qt.AltModifier:
-            return True
-        return False
 
 
 class MaroonLines(QMainWindow):
@@ -29,6 +21,10 @@ class MaroonLines(QMainWindow):
         self._file_path = value
         if self.status_bar:
             self.update_status_bar_file_path()
+
+    @property
+    def file_name(self):
+        return self.file_path or 'untitled'
 
     def __init__(self):
         super(QMainWindow, self).__init__()
@@ -85,34 +81,17 @@ class MaroonLines(QMainWindow):
             event.accept()
             return
 
-        clicked_button = self.display_dialog_box()
+        dialog = Dialog(self.file_name)
+        clicked_button = dialog.exec_()
 
-        if clicked_button == QMessageBox.Cancel:
+        if clicked_button == QDialogButtonBox.Cancel:
             event.ignore()
-        elif clicked_button == QMessageBox.Close:
-            event.accept()
-        elif clicked_button == QMessageBox.Save:
+        elif clicked_button == QDialogButtonBox.Save:
             self.handle_save_action()
+            event.ignore()
+        elif clicked_button == QDialogButtonBox.Close:
             event.accept()
         return
-
-    @staticmethod
-    def display_dialog_box():
-        dialog_box = QMessageBox()
-        dialog_box.setStyleSheet("""
-            QMessageBox {
-                background: rgb(51, 51, 61);
-                width: 500px;
-            }
-            QMessageBox QLabel {
-                color: rgb(205,215,211);
-                font: 17px;
-            }
-        """)
-        dialog_box.setWindowTitle('Maroon Lines')
-        dialog_box.setText('Do you want to save your changes?')
-        dialog_box.setStandardButtons(QMessageBox.Close | QMessageBox.Cancel | QMessageBox.Save)
-        return dialog_box.exec_()
 
     # Define layout and set a central widget to QMainWindow
     def configure_layout_and_central_widget(self):
@@ -372,7 +351,7 @@ class MaroonLines(QMainWindow):
         self.status_bar_num_nodes_label.setText('Versions: {}'.format(num_nodes))
 
     def update_status_bar_file_path(self):
-        self.status_bar_file_path_label.setText(self.file_path or 'untitled')
+        self.status_bar_file_path_label.setText(self.file_name)
 
     def load_repo_file(self, file_hash):
         update_repo_index_curr_object(self.file_path, file_hash)
