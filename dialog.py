@@ -28,15 +28,41 @@ class Dialog(QDialog):
         self.label.setText('Do you want to save your changes?')
 
         font = self.label.font()
-        font.setBold(True)
         self.label.setFont(font)
 
         palette = self.label.palette()
-        palette.setColor(self.foregroundRole(), QColor(205, 211, 215))
+        palette.setColor(self.foregroundRole(), QColor(255, 255, 255))
         self.label.setPalette(palette)
 
     def configure_button_set(self):
         self.button_set.clicked.connect(self.handle_button_action)
+        for button in self.button_set.buttons():
+            button.setFont(QFont())
+            button.setIcon(QIcon())
+            button.setStyleSheet("""
+                QPushButton { 
+                    background-color: #fcfcfc;
+                    border-color: #000000;
+                    outline: none;
+                    border-radius: 6px;
+                    padding: 6px;
+                }
+                
+                QPushButton:focus { 
+                    background-color: #f0b034;
+                    border-color: #f0b034;
+                    outline: none;  
+                    border-radius: 6px;
+                }
+                
+                QPushButton:hover { 
+                    background-color: #f0b034;
+                    border-color: #f0b034;
+                    outline: none;
+                    border-radius: 6px;
+                }
+
+        """)
 
     def configure_dialog_style(self, text):
         self.setAutoFillBackground(True)
