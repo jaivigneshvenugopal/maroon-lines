@@ -103,24 +103,6 @@ class MaroonLines(QMainWindow):
     # Refactored
     def configure_menu_bar(self):
         self.setMenuBar(self.menu_bar)
-        self.menu_bar.setStyleSheet("""
-            QMenuBar {
-                background-color: rgb(51, 51, 61);
-                color: rgb(205,215,211);
-                font: 17px;
-                min-height: 35px;
-            }
-
-            QMenuBar::item {
-                background-color: rgb(51, 51, 61);
-                color: rgb(205,215,211);
-                margin: 0px;
-            }
-
-            QMenuBar::item::selected {
-                background-color: rgb(60, 60, 60);
-            }
-        """)
         self.configure_menu_bar_actions()
 
     def configure_menu_bar_actions(self):

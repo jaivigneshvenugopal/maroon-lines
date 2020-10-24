@@ -17,10 +17,10 @@ INDEX_ADOPTS = 'adopts'
 
 def init_repo(file_path, file_data):
     if not os.path.exists(file_path):
-        raise Exception('Invalid path given')
+        raise Exception('Unable to initialise repo: Invalid path given')
 
     if repo_exists(file_path):
-        raise Exception('Repo already exists')
+        raise Exception('Unable to initialise repo: Repo already exists')
 
     os.makedirs(repo_objects_path(file_path))
     write_repo_key(file_path)
@@ -30,7 +30,7 @@ def init_repo(file_path, file_data):
 
 def copy_repo(old_file_path, new_file_path):
     if not old_file_path or not new_file_path:
-        raise Exception('Invalid paths given')
+        raise Exception('Unable to copy repo: Invalid path/s given')
 
     if old_file_path != new_file_path:
         remove_repo(new_file_path)
