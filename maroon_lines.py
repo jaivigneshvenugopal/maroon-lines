@@ -84,7 +84,7 @@ class MaroonLines(QMainWindow):
         dialog = Dialog(self.file_name)
         clicked_button = dialog.exec_()
 
-        if clicked_button == QDialogButtonBox.Cancel:
+        if not clicked_button or clicked_button == QDialogButtonBox.Cancel:
             event.ignore()
         elif clicked_button == QDialogButtonBox.Save:
             self.handle_save_action()
