@@ -4,14 +4,18 @@ from PyQt5.QtGui import *
 
 
 class Dialog(QDialog):
-    def __init__(self, text):
+    def __init__(self, text, window_close):
         super().__init__()
 
         # Properties
+        self.close_app = window_close
         self.label = QLabel()
-        self.button_role = None
-        self.button_set = QDialogButtonBox(QDialogButtonBox.Save | QDialogButtonBox.Cancel | QDialogButtonBox.Close)
         self.layout = QGridLayout()
+        self.button_role = None
+        if window_close:
+            self.button_set = QDialogButtonBox(QDialogButtonBox.Save | QDialogButtonBox.Cancel | QDialogButtonBox.Close)
+        else:
+            self.button_set = QDialogButtonBox(QDialogButtonBox.Save | QDialogButtonBox.Ignore)
 
         # Instantiate relevant components
         self.configure_dialog_style(text)
@@ -75,14 +79,18 @@ class Dialog(QDialog):
         self.setPalette(palette)
 
     def handle_button_action(self, clicked_button):
-        if clicked_button == self.button_set.button(QDialogButtonBox.Save):
-            self.button_role = QDialogButtonBox.Save
-        elif clicked_button == self.button_set.button(QDialogButtonBox.Cancel):
-            self.button_role = QDialogButtonBox.Cancel
-        elif clicked_button == self.button_set.button(QDialogButtonBox.Close):
-            self.button_role = QDialogButtonBox.Close
+        if self.close_app:
+            if clicked_button == self.button_set.button(QDialogButtonBox.Save):
+                self.button_role = QDialogButtonBox.Save
+            elif clicked_button == self.button_set.button(QDialogButtonBox.Cancel):
+                self.button_role = QDialogButtonBox.Cancel
+            elif clicked_button == self.button_set.button(QDialogButtonBox.Close):
+                self.button_role = QDialogButtonBox.Close
         else:
-            raise Exception('Dialog was not closed properly')
+            if clicked_button == self.button_set.button(QDialogButtonBox.Save):
+                self.button_role = QDialogButtonBox.Save
+            elif clicked_button == self.button_set.button(QDialogButtonBox.Ignore):
+                self.button_role = QDialogButtonBox.Ignore
         self.close()
 
     def exec_(self):

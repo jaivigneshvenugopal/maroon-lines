@@ -83,22 +83,10 @@ class MaroonLines(QMainWindow):
         return False
 
     def closeEvent(self, event):
-        if (not self.file_path and not self.editor.text) or \
-                (self.file_path and self.file_hash == get_hash(self.editor.text)):
-            event.accept()
-            return
-
-        dialog = Dialog(self.file_name)
-        clicked_button = dialog.exec_()
-
-        if not clicked_button or clicked_button == QDialogButtonBox.Cancel:
+        if not self.content_is_saved(window_close=True):
             event.ignore()
-        elif clicked_button == QDialogButtonBox.Save:
-            self.handle_save_action()
-            event.ignore()
-        elif clicked_button == QDialogButtonBox.Close:
+        else:
             event.accept()
-        return
 
     # Define layout and set a central widget to QMainWindow
     def configure_layout_and_central_widget(self):
@@ -199,12 +187,18 @@ class MaroonLines(QMainWindow):
 
     # Refactored
     def handle_new_action(self):
+        if not self.content_is_saved(window_close=False):
+            return
+
         self.update_file_path_and_hash(file_path=None)
         self.editor.clear()
         self.graph.render_graph(index=None)
 
     # Refactored
     def handle_open_action(self):
+        if not self.content_is_saved(window_close=False):
+            return
+
         file_info = QFileDialog.getOpenFileName(self, 'Open File')
         file_path, file_type = str(file_info[0]), file_info[1]
         if file_path:
@@ -216,7 +210,7 @@ class MaroonLines(QMainWindow):
     # Refactored
     def handle_save_action(self):
         if not self.file_path:
-            self.handle_save_as_action()
+            return self.handle_save_as_action()
         else:
             file_hash = get_hash(self.editor.text)
             if repo_object_exists(self.file_path, file_hash):
@@ -227,17 +221,17 @@ class MaroonLines(QMainWindow):
 
             self.file_hash = file_hash
             self.graph.render_graph(repo_index(self.file_path))
+            return True
 
     # Refactored
     def handle_save_as_action(self):
         file_info = QFileDialog.getSaveFileName(self, 'Save As...')
         file_path, file_type = str(file_info[0]), file_info[1]
         if not file_path:
-            return
+            return False
 
-        if self.file_path == file_path:
-            self.handle_save_action()
-            return
+        if self.file_path and self.file_path == file_path:
+            return self.handle_save_action()
 
         if self.file_path and self.file_path != file_path:
             copy_repo(old_file_path=self.file_path, new_file_path=file_path)
@@ -246,6 +240,7 @@ class MaroonLines(QMainWindow):
         self.update_file_path_and_hash(file_path)
         self.update_index()
         self.graph.render_graph(repo_index(self.file_path))
+        return True
 
     def handle_rename_move_action(self):
         if not self.file_path:
@@ -394,6 +389,21 @@ class MaroonLines(QMainWindow):
             os.remove(file_path)
         else:
             raise Exception('File does not exist to move/rename')
+
+    def content_is_saved(self, window_close):
+        if (not self.file_path and not self.editor.text) or \
+                (self.file_path and self.file_hash == get_hash(self.editor.text)):
+            return True
+
+        dialog = Dialog(self.file_name, window_close)
+        clicked_button = dialog.exec_()
+
+        if not clicked_button or clicked_button == QDialogButtonBox.Cancel:
+            return False
+        elif clicked_button == QDialogButtonBox.Save:
+            return self.handle_save_action()
+        elif clicked_button == QDialogButtonBox.Ignore or clicked_button == QDialogButtonBox.Close:
+            return True
 
 
 if __name__ == '__main__':
