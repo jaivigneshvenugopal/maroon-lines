@@ -19,8 +19,12 @@ class MaroonLines(QMainWindow):
     @file_path.setter
     def file_path(self, value):
         self._file_path = value
+
         if self.status_bar:
             self.update_status_bar_file_path()
+
+        if self.rename_move_action:
+            self.rename_move_action.setEnabled(value != None)
 
     @property
     def file_name(self):
@@ -42,6 +46,9 @@ class MaroonLines(QMainWindow):
         self.status_bar_num_lines_label = QLabel()
         self.status_bar_num_nodes_label = QLabel()
         self.status_bar_file_path_label = QLabel()
+
+        # Menu bar related properties
+        self.rename_move_action = None
 
         # File-related properties
         self.file_path = None
@@ -124,9 +131,10 @@ class MaroonLines(QMainWindow):
         save_as_action.setShortcut("Shift+Ctrl+S")
         save_as_action.triggered.connect(self.handle_save_as_action)
 
-        rename_move_action = menu.addAction('Move/Rename')
-        rename_move_action.setShortcut("Ctrl+M")
-        rename_move_action.triggered.connect(self.handle_rename_move_action)
+        self.rename_move_action = menu.addAction('Move/Rename')
+        self.rename_move_action.setShortcut("Ctrl+M")
+        self.rename_move_action.triggered.connect(self.handle_rename_move_action)
+        self.rename_move_action.setEnabled(False)
 
         exit_action = menu.addAction('Exit')
         exit_action.setShortcut("Ctrl+W")
