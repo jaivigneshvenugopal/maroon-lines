@@ -10,6 +10,7 @@ class MenuBar(QMenuBar):
             QMenuBar {
                 background-color: rgb(51, 51, 61);
                 color: rgb(205,215,211);
+                spacing: 0px;
                 font: 17px;
                 min-height: 35px;
             }
@@ -17,11 +18,31 @@ class MenuBar(QMenuBar):
             QMenuBar::item {
                 background-color: rgb(51, 51, 61);
                 color: rgb(205,215,211);
-                margin: 0px;
+                spacing: 0px;
+                font: 17px;
+                min-height: 35px;
+
+                padding-left: 10px;
+                padding-right: 10px;
             }
 
             QMenuBar::item::selected {
                 background-color: rgb(60, 60, 60);
+                color: rgb(205,215,211);
+                spacing: 0px;
+                font: 17px;
+                min-height: 35px;
+                
+                padding-left: 10px;
+                padding-right: 10px;
+            }
+            
+            QAction {
+                background-color: rgb(51, 51, 61);
+                color: rgb(205,215,211);
+                font: 17px;
+                padding-left: 10px;
+                padding-right: 10px;
             }
         """)
 
