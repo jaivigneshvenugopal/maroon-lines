@@ -155,7 +155,8 @@ class MaroonLines(QMainWindow):
         self.status_bar_num_lines_label.setAlignment(Qt.AlignLeft)
         self.status_bar_num_lines_label.setStyleSheet("""
             QLabel {
-                color: rgb(205,215,211)
+                color: rgb(205,215,211);
+                padding-left: 2px;
             }
         """)
 
@@ -163,7 +164,8 @@ class MaroonLines(QMainWindow):
         self.status_bar_num_nodes_label.setAlignment(Qt.AlignRight)
         self.status_bar_num_nodes_label.setStyleSheet("""
             QLabel {
-                color: rgb(205,215,211)
+                color: rgb(205,215,211);
+                padding-right: 2px;
             }
         """)
 
