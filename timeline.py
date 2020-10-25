@@ -88,7 +88,22 @@ class Timeline(QMainWindow):
                                  node_style=use_attributes(),
                                  edge_style=use_attributes())
         self.plot.set_picker(1)
-        self.plot.axes.set_position([0.05, 0, 0.9, 1])
+        x = 0
+        len_x = 1
+        y = 0
+        len_y = 1
+
+        if self.index:
+            max_y = len(self.pos_y.values())
+            if 1 < max_y < 10:
+                y = 0.35 - ((max_y - 2) * 0.05)
+                len_y = 1 - (2 * y)
+            max_x = len(self.pos_x.values())
+            if 1 < max_x < 10:
+                x = 0.45 - ((max_x - 2) * 0.05)
+                len_x = 1 - (2 * x)
+
+        self.plot.axes.set_position([x, y, len_x, len_y])
         self.canvas.draw_idle()
 
     def refresh_graph(self):
