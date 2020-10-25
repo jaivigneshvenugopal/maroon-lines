@@ -88,22 +88,14 @@ class Timeline(QMainWindow):
                                  node_style=use_attributes(),
                                  edge_style=use_attributes())
         self.plot.set_picker(1)
-        x = 0
-        len_x = 1
-        y = 0
-        len_y = 1
+        self.plot.axes.set_position([0.03, 0, 0.94, 1])
 
-        if self.index:
-            max_y = len(self.pos_y.values())
-            if 1 < max_y < 10:
-                y = 0.35 - ((max_y - 2) * 0.05)
-                len_y = 1 - (2 * y)
-            max_x = len(self.pos_x.values())
-            if 1 < max_x < 10:
-                x = 0.45 - ((max_x - 2) * 0.05)
-                len_x = 1 - (2 * x)
+        if self.pos_y and max(self.pos_y.values()) < 10:
+            self.plot.axes.set_ylim(-0.5, 10.5)
 
-        self.plot.axes.set_position([x, y, len_x, len_y])
+        if self.pos_x and max(self.pos_x.values()) < 5:
+            self.plot.axes.set_xlim(-0.5, 5.5)
+            
         self.canvas.draw_idle()
 
     def refresh_graph(self):
@@ -157,18 +149,35 @@ class Timeline(QMainWindow):
         self.graph_matrix = [[None for _ in set(self.pos_y.values())] for _ in set(self.pos_x.values())]
 
         for key in graph.nodes.keys():
-            seq_layout[key] = [self.pos_x[key], self.pos_y[key]]
+            seq_layout[key] = [self.get_pos_x_with_bias(key), self.get_pos_y_with_bias(key)]
             self.graph_matrix[self.pos_x[key]][self.pos_y[key]] = key
 
         return seq_layout
 
+    def get_pos_y_with_bias(self, key):
+        max_y = len(set(self.pos_y.values()))
+        if max_y > 10:
+            return self.pos_y[key]
+        else:
+            y = self.pos_y[key] + (5 - ((max_y - 1) * 0.5))
+            return y
+
+    def get_pos_x_with_bias(self, key):
+        max_x = len(set(self.pos_x.values()))
+        if max_x > 5:
+            return self.pos_x[key]
+        else:
+            x = self.pos_x[key] + (2.5 - ((max_x - 1) * 0.5))
+            return x
+
     def assign_node_positions(self):
-        starting_pos = 0
-        self.pos_x = {self.root: starting_pos}
-        self.pos_y = {self.root: starting_pos}
+        starting_pos_x = 0
+        starting_pos_y = 0
+        self.pos_x = {self.root: starting_pos_x}
+        self.pos_y = {self.root: starting_pos_y}
 
         for parent, children in self.index.items():
-            self.fill_pos_x(children, counter=starting_pos)
+            self.fill_pos_x(children, counter=starting_pos_x)
             self.fill_pos_y(parent, children)
 
     def fill_pos_x(self, children, counter):
