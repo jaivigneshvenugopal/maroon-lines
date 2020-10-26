@@ -60,11 +60,21 @@ class Timeline(QMainWindow):
         self.setCentralWidget(self.canvas)
         self.show()
 
+    def reset_graph_properties(self):
+        self.num_nodes = None
+        self.root = None
+        self.curr = None
+        self.adopts = None
+        self.pos_x = None
+        self.pos_y = None
+        self.graph_matrix = None
+
     def render_graph(self, index):
         self.index = index
         self.build_graph()
 
     def build_graph(self):
+        self.reset_graph_properties()
         self.figure.clf()
         self.graph = nx.DiGraph()
 
@@ -88,14 +98,18 @@ class Timeline(QMainWindow):
                                  node_style=use_attributes(),
                                  edge_style=use_attributes())
         self.plot.set_picker(1)
-        self.plot.axes.set_position([0.03, 0, 0.94, 1])
+        # self.plot.axes.set_position([0.1, 0.1, 0.8, 0.8])
+        self.plot.axes.set_position([0, 0, 1, 1])
+        print(self.plot.axes.get_xlim())
+        print(self.plot.axes.get_ylim())
+        if self.pos_y and self.pos_x:
+            max_y = len(set(self.pos_y.values()))
+            if max_y < 12:
+                self.plot.axes.set_ylim(-0.5, 12.5)
 
-        if self.pos_y and max(self.pos_y.values()) < 10:
-            self.plot.axes.set_ylim(-0.5, 10.5)
-
-        if self.pos_x and max(self.pos_x.values()) < 5:
-            self.plot.axes.set_xlim(-0.5, 5.5)
-            
+            max_x = len(set(self.pos_x.values()))
+            if max_x < 5:
+                self.plot.axes.set_xlim(0, 5)
         self.canvas.draw_idle()
 
     def refresh_graph(self):
@@ -122,7 +136,7 @@ class Timeline(QMainWindow):
         if not self.index:
             for _, node_attrs in self.graph.nodes(data=True):
                 node_attrs['color'] = self.temp_node_color
-                node_attrs['size'] = self.default_node_size
+                node_attrs['size'] = self.get_node_size()
         else:
             for node, node_attrs in self.graph.nodes(data=True):
                 if node == self.root:
@@ -131,7 +145,7 @@ class Timeline(QMainWindow):
                     node_attrs['color'] = self.curr_node_color
                 else:
                     node_attrs['color'] = self.default_node_color
-                node_attrs['size'] = self.default_node_size
+                node_attrs['size'] = self.get_node_size()
 
             for u, v, attrs in self.graph.edges.data():
                 attrs['width'] = 1.5
@@ -139,6 +153,20 @@ class Timeline(QMainWindow):
             for edge in self.adopts:
                 edge_attr = self.graph.edges[edge[0], edge[1]]
                 edge_attr['style'] = 'dotted'
+
+    def get_node_size(self):
+        if not self.pos_x and not self.pos_y:
+            return self.default_node_size
+
+        cap = 30
+        max_x = len(set(self.pos_x.values()))
+        max_y = len(set(self.pos_y.values()))
+        if max_y < cap and max_x < cap:
+            return self.default_node_size
+
+        adjusted_node_size = (1 - ((max_y - cap) * 0.03)) * self.default_node_size
+
+        return max(75.0, adjusted_node_size)
 
     def pick_event(self, event):
         if hasattr(event, 'nodes') and event.nodes and event.nodes[0] != self.curr:
@@ -156,10 +184,12 @@ class Timeline(QMainWindow):
 
     def get_pos_y_with_bias(self, key):
         max_y = len(set(self.pos_y.values()))
-        if max_y > 10:
+        print(max_y)
+        if max_y > 13:
             return self.pos_y[key]
         else:
-            y = self.pos_y[key] + (5 - ((max_y - 1) * 0.5))
+            y = self.pos_y[key] + (6 - ((max_y - 1) * 0.5))
+            print(y)
             return y
 
     def get_pos_x_with_bias(self, key):
