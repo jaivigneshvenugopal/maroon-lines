@@ -1,4 +1,5 @@
 import sys
+from random import random
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
@@ -127,6 +128,16 @@ class MaroonLines(QMainWindow):
         exit_action = menu.addAction('Exit')
         exit_action.setShortcut("Ctrl+W")
         exit_action.triggered.connect(self.handle_exit_action)
+
+        # Development code - delete during production
+        insert_test_text = menu.addAction('insert')
+        insert_test_text.setShortcut("Ctrl+L")
+        insert_test_text.triggered.connect(self.handle_insert_action)
+
+    # Development code - delete during production
+    def handle_insert_action(self):
+        self.editor.insertText(0, str(random()))
+        self.handle_save_action()
 
     # Refactored
     def configure_status_bar(self):

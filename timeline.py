@@ -98,18 +98,17 @@ class Timeline(QMainWindow):
                                  node_style=use_attributes(),
                                  edge_style=use_attributes())
         self.plot.set_picker(1)
-        # self.plot.axes.set_position([0.1, 0.1, 0.8, 0.8])
-        self.plot.axes.set_position([0, 0, 1, 1])
-        print(self.plot.axes.get_xlim())
-        print(self.plot.axes.get_ylim())
+        self.plot.axes.set_position([0.02, 0, 0.96, 1])
+
         if self.pos_y and self.pos_x:
             max_y = len(set(self.pos_y.values()))
             if max_y < 12:
                 self.plot.axes.set_ylim(-0.5, 12.5)
 
             max_x = len(set(self.pos_x.values()))
-            if max_x < 5:
-                self.plot.axes.set_xlim(0, 5)
+            if max_x < 6:
+                self.plot.axes.set_xlim(-0.5, 5.5)
+
         self.canvas.draw_idle()
 
     def refresh_graph(self):
@@ -158,15 +157,17 @@ class Timeline(QMainWindow):
         if not self.pos_x and not self.pos_y:
             return self.default_node_size
 
-        cap = 30
+        x_cap = 10
+        y_cap = 20
         max_x = len(set(self.pos_x.values()))
         max_y = len(set(self.pos_y.values()))
-        if max_y < cap and max_x < cap:
+        if max_y < y_cap and max_x < x_cap:
             return self.default_node_size
 
-        adjusted_node_size = (1 - ((max_y - cap) * 0.03)) * self.default_node_size
+        adjusted_node_x_size = (1 - ((max_x - x_cap) * 0.03)) * self.default_node_size
+        adjusted_node_y_size = (1 - ((max_y - y_cap) * 0.01)) * self.default_node_size
 
-        return max(75.0, adjusted_node_size)
+        return max(30.0, min(adjusted_node_x_size, adjusted_node_y_size))
 
     def pick_event(self, event):
         if hasattr(event, 'nodes') and event.nodes and event.nodes[0] != self.curr:
@@ -184,13 +185,10 @@ class Timeline(QMainWindow):
 
     def get_pos_y_with_bias(self, key):
         max_y = len(set(self.pos_y.values()))
-        print(max_y)
         if max_y > 13:
             return self.pos_y[key]
         else:
-            y = self.pos_y[key] + (6 - ((max_y - 1) * 0.5))
-            print(y)
-            return y
+            return self.pos_y[key] + (6 - ((max_y - 1) * 0.5))
 
     def get_pos_x_with_bias(self, key):
         max_x = len(set(self.pos_x.values()))
