@@ -130,7 +130,7 @@ class MaroonLines(QMainWindow):
         exit_action.triggered.connect(self.handle_exit_action)
 
         # Development code - delete during production
-        insert_test_text = menu.addAction('insert')
+        insert_test_text = menu.addAction('Insert Random Text and Save File')
         insert_test_text.setShortcut("Ctrl+L")
         insert_test_text.triggered.connect(self.handle_insert_action)
 
