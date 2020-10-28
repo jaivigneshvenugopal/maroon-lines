@@ -186,7 +186,7 @@ class Timeline(QMainWindow):
 
         for key in graph.nodes.keys():
             seq_layout[key] = [self.get_pos_x_with_bias(key), self.get_pos_y_with_bias(key)]
-            self.graph_matrix[self.pos_x[key]][self.pos_y[key]] = key
+            self.graph_matrix[self.pos_x[key]][self.pos_y[key]] = key if key != self.unsaved_node else None
 
         return seq_layout
 
