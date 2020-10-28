@@ -390,14 +390,12 @@ class MaroonLines(QMainWindow):
 
     def load_repo_file(self, file_hash):
         update_repo_index_curr_object(self.file_path, file_hash)
-
-        self.curr_node_changed = True
         self.file_hash = file_hash
-        self.editor.clear()
+        self.curr_node_changed = True
         self.editor.text = repo_object(self.file_path, file_hash)
         self.store_file(self.file_path)
-
         if self.file_in_edit_mode:
+            print('file in edit mode')
             self.graph.render_graph(repo_index(self.file_path))
             self.file_in_edit_mode = False
 
