@@ -36,6 +36,7 @@ class MaroonLines(QMainWindow):
 
         # Repo-related properties
         self.index = None
+        self.curr_node_changed = False
 
         # Widget-related properties
         self.layout = QHBoxLayout()
@@ -54,7 +55,7 @@ class MaroonLines(QMainWindow):
         # File-related properties
         self.file_path = None
         self.file_hash = None
-        self.file_unsaved = False
+        self.file_in_edit_mode = False
 
         # Shortcuts and corresponding functions
         self.shortcut_arrow_functions = {
@@ -211,7 +212,7 @@ class MaroonLines(QMainWindow):
 
         self.update_file_path_and_hash(file_path=None)
         self.editor.clear()
-        self.file_unsaved = False
+        self.file_in_edit_mode = False
         self.graph.render_graph(index=None)
 
     # Refactored
@@ -225,7 +226,7 @@ class MaroonLines(QMainWindow):
             self.load_file(file_path)
             self.update_file_path_and_hash(file_path)
             self.update_index()
-            self.file_unsaved = False
+            self.file_in_edit_mode = False
             self.graph.render_graph(repo_index(self.file_path))
 
     # Refactored
@@ -241,7 +242,7 @@ class MaroonLines(QMainWindow):
                 self.store_file(self.file_path)
 
             self.file_hash = file_hash
-            self.file_unsaved = False
+            self.file_in_edit_mode = False
             self.graph.render_graph(repo_index(self.file_path))
             return True
 
@@ -261,7 +262,7 @@ class MaroonLines(QMainWindow):
         self.store_file(file_path)
         self.update_file_path_and_hash(file_path)
         self.update_index()
-        self.file_unsaved = False
+        self.file_in_edit_mode = False
         self.graph.render_graph(repo_index(self.file_path))
         return True
 
@@ -279,7 +280,7 @@ class MaroonLines(QMainWindow):
         self.move_file(file_path)
         self.update_file_path_and_hash(file_path)
         self.update_index()
-        self.file_unsaved = False
+        self.file_in_edit_mode = False
         self.graph.render_graph(repo_index(self.file_path))
 
     # Refactored
@@ -357,7 +358,7 @@ class MaroonLines(QMainWindow):
     # Slot Functions
     def update_relevant_components(self):
         self.update_status_bar_num_lines()
-        self.display_temp_node()
+        self.display_graph_in_edit_mode()
 
     def update_status_bar_num_lines(self):
         self.status_bar_num_lines_label.setText('Lines: {}'.format(len(self.editor.lines)))
@@ -368,29 +369,37 @@ class MaroonLines(QMainWindow):
     def update_status_bar_file_path(self):
         self.status_bar_file_path_label.setText(self.file_name)
 
-    def display_temp_node(self):
-        if not self.file_path or not self.file_unsaved:
+    def display_graph_in_edit_mode(self):
+        if not self.file_path or self.file_in_edit_mode:
             return
-        print('display temp node')
+
+        if self.curr_node_changed:
+            self.curr_node_changed = False
+            return
+
+        self.graph.render_graph(self.add_unsaved_node())
+        self.file_in_edit_mode = True
+
+    def add_unsaved_node(self):
         index = repo_index(self.file_path)
         curr = index['curr']
         index[curr].append('unsaved_node')
         index['unsaved_node'] = []
-        self.graph.render_graph(index)
-        self.file_unsaved = True
+
+        return index
 
     def load_repo_file(self, file_hash):
         update_repo_index_curr_object(self.file_path, file_hash)
+
+        self.curr_node_changed = True
         self.file_hash = file_hash
         self.editor.clear()
         self.editor.text = repo_object(self.file_path, file_hash)
         self.store_file(self.file_path)
 
-        if not self.file_unsaved:
-            return
-
-        self.graph.render_graph(repo_index(self.file_path))
-        self.file_unsaved = False
+        if self.file_in_edit_mode:
+            self.graph.render_graph(repo_index(self.file_path))
+            self.file_in_edit_mode = False
 
     # Helper functions
     def load_file(self, file_path):
