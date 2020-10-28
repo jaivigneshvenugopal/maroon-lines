@@ -227,8 +227,10 @@ class Timeline(QMainWindow):
 
     def switch_node_colors(self, new_curr):
         self.graph.nodes[new_curr]['color'] = self.curr_node_color
-        self.graph.nodes[self.curr]['color'] = \
-            self.root_node_color if self.curr == self.root else self.default_node_color
+        if self.curr == self.root:
+            self.graph.nodes[self.curr]['color'] = self.root_node_color
+        else:
+            self.graph.nodes[self.curr]['color'] = self.intermediate_node_color
         self.curr = new_curr
         self.refresh_graph()
 
