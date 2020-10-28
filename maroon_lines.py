@@ -54,6 +54,7 @@ class MaroonLines(QMainWindow):
         # File-related properties
         self.file_path = None
         self.file_hash = None
+        self.file_unsaved = False
 
         # Shortcuts and corresponding functions
         self.shortcut_arrow_functions = {
@@ -76,6 +77,9 @@ class MaroonLines(QMainWindow):
         if event.type() == QEvent.KeyPress and event.modifiers() == Qt.AltModifier:
             key = event.key()
             if self.file_path and key in self.shortcut_arrow_functions:
+                if not self.content_is_saved(window_close=False):
+                    return False
+
                 traverse = self.shortcut_arrow_functions[key]
                 traverse()
                 return True
@@ -203,6 +207,7 @@ class MaroonLines(QMainWindow):
 
         self.update_file_path_and_hash(file_path=None)
         self.editor.clear()
+        self.file_unsaved = False
         self.graph.render_graph(index=None)
 
     # Refactored
@@ -216,6 +221,7 @@ class MaroonLines(QMainWindow):
             self.load_file(file_path)
             self.update_file_path_and_hash(file_path)
             self.update_index()
+            self.file_unsaved = False
             self.graph.render_graph(repo_index(self.file_path))
 
     # Refactored
@@ -231,6 +237,7 @@ class MaroonLines(QMainWindow):
                 self.store_file(self.file_path)
 
             self.file_hash = file_hash
+            self.file_unsaved = False
             self.graph.render_graph(repo_index(self.file_path))
             return True
 
@@ -250,6 +257,7 @@ class MaroonLines(QMainWindow):
         self.store_file(file_path)
         self.update_file_path_and_hash(file_path)
         self.update_index()
+        self.file_unsaved = False
         self.graph.render_graph(repo_index(self.file_path))
         return True
 
@@ -267,6 +275,7 @@ class MaroonLines(QMainWindow):
         self.move_file(file_path)
         self.update_file_path_and_hash(file_path)
         self.update_index()
+        self.file_unsaved = False
         self.graph.render_graph(repo_index(self.file_path))
 
     # Refactored
@@ -337,11 +346,15 @@ class MaroonLines(QMainWindow):
         editor_margin.setFont(font)
         editor_margin.setStyleSheet('background-color: #f0f0f0')
 
-        self.editor.textChanged.connect(self.update_status_bar_num_lines)
+        self.editor.textChanged.connect(self.update_relevant_components)
         self.editor.installEventFilter(self)
         self.layout.addWidget(self.editor, 82)
 
     # Slot Functions
+    def update_relevant_components(self):
+        self.update_status_bar_num_lines()
+        self.display_temp_node()
+
     def update_status_bar_num_lines(self):
         self.status_bar_num_lines_label.setText('Lines: {}'.format(len(self.editor.lines)))
 
@@ -351,12 +364,29 @@ class MaroonLines(QMainWindow):
     def update_status_bar_file_path(self):
         self.status_bar_file_path_label.setText(self.file_name)
 
+    def display_temp_node(self):
+        if not self.file_path or self.file_unsaved:
+            return
+
+        index = repo_index(self.file_path)
+        curr = index['curr']
+        index[curr].append('unsaved_node')
+        index['unsaved_node'] = []
+        self.graph.render_graph(index)
+        self.file_unsaved = True
+
     def load_repo_file(self, file_hash):
         update_repo_index_curr_object(self.file_path, file_hash)
         self.file_hash = file_hash
         self.editor.clear()
         self.editor.text = repo_object(self.file_path, file_hash)
         self.store_file(self.file_path)
+
+        if not self.file_unsaved:
+            return
+
+        self.graph.render_graph(repo_index(self.file_path))
+        self.file_unsaved = False
 
     # Helper functions
     def load_file(self, file_path):

@@ -17,7 +17,8 @@ class Timeline(QMainWindow):
     # Constants
     ROOT_NODE_COLOR = '#006400'
     CURR_NODE_COLOR = '#d00000'
-    TEMP_NODE_COLOR = '#66ce62'
+    TEMP_NODE_COLOR = '#25B0B0'
+    UNSAVED_NODE_COLOR = '#FF7F7F'
     DEFAULT_NODE_SIZE = 200
     DEFAULT_NODE_COLOR = '#25B0B0'
     FIGURE_BACKGROUND_COLOR = '#fff0f0'
@@ -36,6 +37,7 @@ class Timeline(QMainWindow):
         self.num_nodes = None
         self.root = None
         self.curr = None
+        self.unsaved_node = 'unsaved_node'
         self.adopts = None
         self.pos_x = None
         self.pos_y = None
@@ -45,6 +47,7 @@ class Timeline(QMainWindow):
         self.root_node_color = self.ROOT_NODE_COLOR
         self.curr_node_color = self.CURR_NODE_COLOR
         self.temp_node_color = self.TEMP_NODE_COLOR
+        self.unsaved_node_color = self.UNSAVED_NODE_COLOR
         self.default_node_color = self.DEFAULT_NODE_COLOR
         self.default_node_size = self.DEFAULT_NODE_SIZE
 
@@ -142,16 +145,20 @@ class Timeline(QMainWindow):
                     node_attrs['color'] = self.root_node_color
                 elif node == self.curr:
                     node_attrs['color'] = self.curr_node_color
+                elif node == self.unsaved_node:
+                    node_attrs['color'] = self.unsaved_node_color
                 else:
                     node_attrs['color'] = self.default_node_color
                 node_attrs['size'] = self.get_node_size()
 
             for u, v, attrs in self.graph.edges.data():
                 attrs['width'] = 1.5
+                if u == self.curr and v == self.unsaved_node:
+                    attrs['style'] = 'dotted'
 
             for edge in self.adopts:
                 edge_attr = self.graph.edges[edge[0], edge[1]]
-                edge_attr['style'] = 'dotted'
+                edge_attr['style'] = 'dashed'
 
     def get_node_size(self):
         if not self.pos_x and not self.pos_y:
