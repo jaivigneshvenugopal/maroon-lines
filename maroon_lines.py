@@ -74,18 +74,19 @@ class MaroonLines(QMainWindow):
 
     # Event filter for Editor to ignore certain shortcuts pertaining to Graph
     def eventFilter(self, source, event):
-        if event.type() == QEvent.KeyPress and event.modifiers() == Qt.AltModifier:
-            key = event.key()
-            if self.file_path and key in self.shortcut_arrow_functions:
-                if not self.content_is_saved(window_close=False):
-                    return False
+        if event.type() != QEvent.KeyPress or event.modifiers() != Qt.AltModifier:
+            return False
 
-                traverse = self.shortcut_arrow_functions[key]
-                traverse()
-                return True
-            else:
-                return False
-        return False
+        if not self.file_path or event.key() not in self.shortcut_arrow_functions:
+            return False
+
+        if not self.content_is_saved(window_close=False):
+            return False
+
+        traverse = self.shortcut_arrow_functions[event.key()]
+        traverse()
+
+        return True
 
     def closeEvent(self, event):
         if not self.content_is_saved(window_close=True):
