@@ -83,6 +83,9 @@ class MaroonLines(QMainWindow):
         if not self.content_is_saved(window_close=False):
             return False
 
+        if event.isAutoRepeat():
+            return True
+
         traverse = self.shortcut_arrow_functions[event.key()]
         traverse()
 
