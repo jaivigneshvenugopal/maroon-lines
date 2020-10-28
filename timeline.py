@@ -17,7 +17,6 @@ class Timeline(QMainWindow):
     # Constants
     ROOT_NODE_COLOR = '#006400'
     CURR_NODE_COLOR = '#d00000'
-    TEMP_NODE_COLOR = '#25B0B0'
     UNSAVED_NODE_COLOR = '#FF7F7F'
     DEFAULT_NODE_SIZE = 200
     DEFAULT_NODE_COLOR = '#25B0B0'
@@ -46,9 +45,8 @@ class Timeline(QMainWindow):
         # Graph-node related properties
         self.root_node_color = self.ROOT_NODE_COLOR
         self.curr_node_color = self.CURR_NODE_COLOR
-        self.temp_node_color = self.TEMP_NODE_COLOR
         self.unsaved_node_color = self.UNSAVED_NODE_COLOR
-        self.default_node_color = self.DEFAULT_NODE_COLOR
+        self.intermediate_node_color = self.DEFAULT_NODE_COLOR
         self.default_node_size = self.DEFAULT_NODE_SIZE
 
         # Instantiate relevant components
@@ -137,7 +135,7 @@ class Timeline(QMainWindow):
     def configure_node_and_edge_aesthetics(self):
         if not self.index:
             for _, node_attrs in self.graph.nodes(data=True):
-                node_attrs['color'] = self.temp_node_color
+                node_attrs['color'] = self.intermediate_node_color
                 node_attrs['size'] = self.get_node_size()
         else:
             for node, node_attrs in self.graph.nodes(data=True):
@@ -148,7 +146,7 @@ class Timeline(QMainWindow):
                 elif node == self.unsaved_node:
                     node_attrs['color'] = self.unsaved_node_color
                 else:
-                    node_attrs['color'] = self.default_node_color
+                    node_attrs['color'] = self.intermediate_node_color
                 node_attrs['size'] = self.get_node_size()
 
             for u, v, attrs in self.graph.edges.data():
