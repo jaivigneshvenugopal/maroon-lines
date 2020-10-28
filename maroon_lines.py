@@ -369,9 +369,9 @@ class MaroonLines(QMainWindow):
         self.status_bar_file_path_label.setText(self.file_name)
 
     def display_temp_node(self):
-        if not self.file_path or self.file_unsaved:
+        if not self.file_path or not self.file_unsaved:
             return
-
+        print('display temp node')
         index = repo_index(self.file_path)
         curr = index['curr']
         index[curr].append('unsaved_node')
