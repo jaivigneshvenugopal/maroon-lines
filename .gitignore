@@ -2,3 +2,11 @@
 __pycache__/
 
 .idea/
+
+repos/
+
+test.py
+
+vig
+
+ui.ui
