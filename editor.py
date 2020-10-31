@@ -10,7 +10,7 @@ from pyqode.core import panels
 from pyqode.qt import QtWidgets
 
 
-class Editor(CodeEdit):
+class PyQodeEditor(CodeEdit):
 
     MONOKAI_THEME = 'monokai'
 
@@ -23,19 +23,32 @@ class Editor(CodeEdit):
         self.backend.start('editor_backend.py')
 
         # append some modes and panels
+        self.modes.append(modes.AutoIndentMode())
         self.modes.append(modes.CodeCompletionMode())
         self.modes.append(modes.PygmentsSyntaxHighlighter(self.document()))
-        self.modes.append(modes.CaretLineHighlighterMode())
-        self.panels.append(panels.SearchAndReplacePanel(), api.Panel.Position.BOTTOM)
 
-        self.modes.get(modes.PygmentsSyntaxHighlighter).pygments_style = 'dracula'
+        self.panels.append(panels.SearchAndReplacePanel(), api.Panel.Position.BOTTOM)
+        self.panels.append(panels.LineNumberPanel(), api.Panel.Position.LEFT)
+
         self.file.open(__file__)
+        self.font_size = 12
+
+    def set_text(self, text):
+        self.setPlainText(text, 'text/plain', 'utf-8')
+
+    def clear_text(self):
+        self.setPlainText('', 'text/plain', 'utf-8')
+
+    def get_text(self):
+        return self.toPlainText()
+
+
 
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     window = QtWidgets.QMainWindow()
-    editor = Editor()
+    editor = PyQodeEditor()
     window.setCentralWidget(editor)
     window.showMaximized()
     app.exec_()
