@@ -9,6 +9,9 @@ from pyqode.core import modes
 from pyqode.core import panels
 from pyqode.qt import QtWidgets
 
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
+
 
 class PyQodeEditor(CodeEdit):
 
@@ -19,19 +22,78 @@ class PyQodeEditor(CodeEdit):
         self.configure_editor()
 
     def configure_editor(self):
-        # start the backend as soon as possible
-        self.backend.start('editor_backend.py')
+        self.configure_backend()
+        self.configure_modes_and_panels()
+        self.configure_font()
+        self.configure_aesthetics()
+        # self.file.open(__file__)
 
-        # append some modes and panels
+    def configure_modes_and_panels(self):
+        # Modes
         self.modes.append(modes.AutoIndentMode())
-        self.modes.append(modes.CodeCompletionMode())
         self.modes.append(modes.PygmentsSyntaxHighlighter(self.document()))
 
+        # Panels
         self.panels.append(panels.SearchAndReplacePanel(), api.Panel.Position.BOTTOM)
         self.panels.append(panels.LineNumberPanel(), api.Panel.Position.LEFT)
 
-        self.file.open(__file__)
-        self.font_size = 12
+    # Start the backend as soon as possible
+    def configure_backend(self):
+        self.backend.start('editor_backend.py')
+
+    def configure_aesthetics(self):
+        self.setStyleSheet("background-color: #fcfcfc")
+        self.configure_scrollbar_aesthetics()
+
+    def configure_font(self):
+        self.font_name = 'Source Code Pro'
+        self.font_size = 14
+
+    def configure_scrollbar_aesthetics(self):
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        scroll_bar = self.verticalScrollBar()
+        scroll_bar.setStyleSheet(
+            """QScrollBar:vertical {
+                    width: 12px;
+                    margin: 0;
+                    background: #fcfcfc;
+                  }
+
+                  QScrollBar::handle:vertical {
+                    border: 12px solid #d9d9d9;
+                    background: #33333d;
+                    min-height: 10px;
+                  }
+
+                  QScrollBar::add-line:vertical {
+                    height: 0px;
+                  }
+
+                  QScrollBar::sub-line:vertical {
+                    height: 0px;
+                  }
+
+                  QScrollBar::up-arrow:vertical {
+                    border: none;
+                    height: 0px;
+                    width: 0px;
+                    background: none;
+                    color: none;
+                  }
+
+                  QScrollBar::down-arrow:vertical {
+                    border: none;
+                    height: 0px;
+                    width: 0px;
+                    background: none;
+                    color: none;
+                  }
+                  QScrollBar::add-page:vertical {
+                    height: 0px;
+                  }
+                  QScrollBar::sub-page:vertical {
+                    height: 0px;
+                  }""")
 
     def set_text(self, text):
         self.setPlainText(text, 'text/plain', 'utf-8')
@@ -42,7 +104,8 @@ class PyQodeEditor(CodeEdit):
     def get_text(self):
         return self.toPlainText()
 
-
+    def get_lines(self):
+        return max(1, self.blockCount())
 
 
 if __name__ == "__main__":
