@@ -5,6 +5,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 
 from qutepart import *
+from editor import PyQodeEditor
 from repository_control_utils import *
 from timeline import Timeline
 from dialog import Dialog
@@ -48,7 +49,7 @@ class MaroonLines(QMainWindow):
         self.layout = QHBoxLayout()
         self.central_widget = QWidget()
         self.menu_bar = MenuBar()
-        self.editor = Editor()
+        self.editor = PyQodeEditor()
         self.graph = Timeline()
         self.status_bar = QStatusBar()
         self.status_bar_num_lines_label = QLabel()
@@ -151,7 +152,7 @@ class MaroonLines(QMainWindow):
 
     # Development code - delete during production
     def handle_insert_action(self):
-        self.editor.insertText(0, str(random()))
+        self.editor.set_text(str(random()))
         self.handle_save_action()
 
     # Refactored
@@ -202,7 +203,7 @@ class MaroonLines(QMainWindow):
     def configure_graph(self):
         self.graph.curr_node_changed.connect(self.load_repo_file)
         self.graph.num_nodes_changed.connect(self.update_status_bar_num_nodes)
-        self.layout.addWidget(self.graph, 18)
+        self.layout.addWidget(self.graph, 15)
         self.graph.render_graph(index=None)
 
     # Define the geometry of the application and show it
@@ -217,7 +218,7 @@ class MaroonLines(QMainWindow):
             return
 
         self.update_file_path_and_hash(file_path=None)
-        self.editor.clear()
+        self.editor.clear_text()
         self.file_in_edit_mode = False
         self.graph.render_graph(index=None)
 
@@ -240,11 +241,11 @@ class MaroonLines(QMainWindow):
         if not self.file_path:
             return self.handle_save_as_action()
         else:
-            file_hash = get_hash(self.editor.text)
+            file_hash = get_hash(self.editor.get_text())
             if repo_object_exists(self.file_path, file_hash):
                 update_repo_index_curr_object(self.file_path, file_hash)
             else:
-                append_repo_object(self.file_path, file_data=self.editor.text, parent_file_hash=self.file_hash)
+                append_repo_object(self.file_path, file_data=self.editor.get_text(), parent_file_hash=self.file_hash)
                 self.store_file(self.file_path)
 
             self.file_hash = file_hash
@@ -295,71 +296,13 @@ class MaroonLines(QMainWindow):
 
     # Instantiate editor
     def configure_editor(self):
-        # Configure editor settings
-        self.editor.currentLineColor = None
-        self.editor.drawIncorrectIndentation = False
-        self.editor.moveLineUpAction.setEnabled(False)
-        self.editor.moveLineDownAction.setEnabled(False)
-
-        # Configure editor style
-        self.editor.setStyleSheet("background-color: #fcfcfc")
-        self.editor.setFont(QFont('Fire Code', 16))
-
-        # Configure editor scroll bar
-        self.editor.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-        scroll_bar = self.editor.verticalScrollBar()
-        scroll_bar.setStyleSheet(
-            """QScrollBar:vertical {
-                    width: 12px;
-                    margin: 0;
-                    background: #fcfcfc;
-                  }
-
-                  QScrollBar::handle:vertical {
-                    border: 12px solid #d9d9d9;
-                    background: #33333d;
-                    min-height: 10px;
-                  }
-
-                  QScrollBar::add-line:vertical {
-                    height: 0px;
-                  }
-
-                  QScrollBar::sub-line:vertical {
-                    height: 0px;
-                  }
-
-                  QScrollBar::up-arrow:vertical {
-                    border: none;
-                    height: 0px; 
-                    width: 0px;
-                    background: none;
-                    color: none;
-                  }
-
-                  QScrollBar::down-arrow:vertical {
-                    border: none;
-                    height: 0px; 
-                    width: 0px;
-                    background: none;
-                    color: none;                              
-                  }
-                  QScrollBar::add-page:vertical {
-                    height: 0px; 
-                  }
-                  QScrollBar::sub-page:vertical {
-                    height: 0px; 
-                  }""")
-
         # Configure editor margins
-        editor_margin = self.editor.getMargins()[0]
-        font = QFont('Fire Code', 14)
-        editor_margin.setFont(font)
-        editor_margin.setStyleSheet('background-color: #f0f0f0')
+        # editor_margin = self.editor.getMargins()[0]
+        # editor_margin.setStyleSheet('background-color: #f0f0f0')
 
         self.editor.textChanged.connect(self.update_relevant_components)
         self.editor.installEventFilter(self)
-        self.layout.addWidget(self.editor, 82)
+        self.layout.addWidget(self.editor, 85)
 
     # Slot Functions
     def update_relevant_components(self):
@@ -367,7 +310,7 @@ class MaroonLines(QMainWindow):
         self.display_graph_in_edit_mode()
 
     def update_status_bar_num_lines(self):
-        self.status_bar_num_lines_label.setText('Lines: {}'.format(len(self.editor.lines)))
+        self.status_bar_num_lines_label.setText('Lines: {}'.format(self.editor.get_lines())) 
 
     def update_status_bar_num_nodes(self, num_nodes):
         self.status_bar_num_nodes_label.setText('Versions: {}'.format(num_nodes))
@@ -398,7 +341,7 @@ class MaroonLines(QMainWindow):
         update_repo_index_curr_object(self.file_path, file_hash)
         self.file_hash = file_hash
         self.curr_node_changed = True
-        self.editor.text = repo_object(self.file_path, file_hash)
+        self.editor.set_text(repo_object(self.file_path, file_hash))
         self.store_file(self.file_path)
         if self.file_in_edit_mode:
             print('file in edit mode')
@@ -408,31 +351,31 @@ class MaroonLines(QMainWindow):
     # Helper functions
     def load_file(self, file_path):
         with open(file_path, 'r') as f:
-            self.editor.text = f.read()
+            self.editor.set_text(f.read())
 
     def store_file(self, file_path):
         with open(file_path, 'w') as f:
-            f.write(self.editor.text)
+            f.write(self.editor.get_text())
 
     def update_file_path_and_hash(self, file_path):
         self.file_path = file_path
         if self.file_path:
-            self.file_hash = get_hash(self.editor.text)
+            self.file_hash = get_hash(self.editor.get_text())
         else:
             self.file_hash = None
 
     def index_curr_is_different_from_file_in_editor(self):
-        return repo_index_curr_object(self.file_path) != get_hash(self.editor.text)
+        return repo_index_curr_object(self.file_path) != get_hash(self.editor.get_text())
 
     def update_index(self):
         if not repo_exists(self.file_path):
-            init_repo(self.file_path, self.editor.text)
+            init_repo(self.file_path, self.editor.get_text())
 
         if self.index_curr_is_different_from_file_in_editor():
             if repo_object_exists(self.file_path, self.file_hash):
                 update_repo_index_curr_object(self.file_path, self.file_hash)
             else:
-                build_bridge(self.file_path, self.editor.text)
+                build_bridge(self.file_path, self.editor.get_text())
 
     def move_file(self, file_path):
         copy_repo(old_file_path=self.file_path, new_file_path=file_path)
@@ -449,8 +392,8 @@ class MaroonLines(QMainWindow):
             raise Exception('File does not exist to move/rename')
 
     def content_is_saved(self, window_close):
-        if (not self.file_path and not self.editor.text) or \
-                (self.file_path and self.file_hash == get_hash(self.editor.text)):
+        if (not self.file_path and not self.editor.get_text()) or \
+                (self.file_path and self.file_hash == get_hash(self.editor.get_text())):
             return True
 
         dialog = Dialog(self.file_name, window_close)
