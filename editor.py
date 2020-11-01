@@ -35,7 +35,9 @@ class PyQodeEditor(CodeEdit):
 
         # Panels
         self.panels.append(panels.SearchAndReplacePanel(), api.Panel.Position.BOTTOM)
-        self.panels.append(panels.LineNumberPanel(), api.Panel.Position.LEFT)
+        line_num_area = panels.LineNumberPanel()
+        line_num_area.setStyleSheet("background-color: #f0f0f0;")
+        self.panels.append(line_num_area, api.Panel.Position.LEFT)
 
     # Start the backend as soon as possible
     def configure_backend(self):
@@ -48,6 +50,18 @@ class PyQodeEditor(CodeEdit):
     def configure_font(self):
         self.font_name = 'Source Code Pro'
         self.font_size = 14
+
+    def set_text(self, text):
+        self.setPlainText(text, 'text/plain', 'utf-8')
+
+    def clear_text(self):
+        self.setPlainText('', 'text/plain', 'utf-8')
+
+    def get_text(self):
+        return self.toPlainText()
+
+    def get_lines(self):
+        return max(1, self.blockCount())
 
     def configure_scrollbar_aesthetics(self):
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
@@ -94,18 +108,49 @@ class PyQodeEditor(CodeEdit):
                   QScrollBar::sub-page:vertical {
                     height: 0px;
                   }""")
+        scroll_bar = self.horizontalScrollBar()
+        scroll_bar.setStyleSheet(
+            """QScrollBar:horizontal {
+                    width: 12px;
+                    margin: 0;
+                    background: #fcfcfc;
+                  }
 
-    def set_text(self, text):
-        self.setPlainText(text, 'text/plain', 'utf-8')
+                  QScrollBar::handle:horizontal {
+                    border: 12px solid #d9d9d9;
+                    background: #33333d;
+                    min-height: 10px;
+                  }
 
-    def clear_text(self):
-        self.setPlainText('', 'text/plain', 'utf-8')
+                  QScrollBar::add-line:horizontal {
+                    height: 0px;
+                  }
 
-    def get_text(self):
-        return self.toPlainText()
+                  QScrollBar::sub-line:horizontal {
+                    height: 0px;
+                  }
 
-    def get_lines(self):
-        return max(1, self.blockCount())
+                  QScrollBar::up-arrow:horizontal {
+                    border: none;
+                    height: 0px;
+                    width: 0px;
+                    background: none;
+                    color: none;
+                  }
+
+                  QScrollBar::down-arrow:horizontal {
+                    border: none;
+                    height: 0px;
+                    width: 0px;
+                    background: none;
+                    color: none;
+                  }
+                  QScrollBar::add-page:horizontal {
+                    height: 0px;
+                  }
+                  QScrollBar::sub-page:horizontal {
+                    height: 0px;
+                  }""")
 
 
 if __name__ == "__main__":
