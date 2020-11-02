@@ -333,7 +333,6 @@ class MaroonLines(QMainWindow):
         self.editor.set_text(repo_object(self.file_path, file_hash))
         self.store_file(self.file_path)
         if self.file_in_edit_mode:
-            print('file in edit mode')
             self.graph.render_graph(repo_index(self.file_path))
             self.file_in_edit_mode = False
 

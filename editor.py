@@ -7,6 +7,7 @@ from pyqode.core import api
 from pyqode.core.api import CodeEdit
 from pyqode.core import modes
 from pyqode.core import panels
+from pyqode.core.panels import LineNumberPanel as DefaultLineNumberPanel
 from pyqode.qt import QtWidgets
 
 from PyQt5.QtWidgets import *
@@ -14,9 +15,31 @@ from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 
 
+class LineNumberPanel(DefaultLineNumberPanel):
+    def __init__(self):
+        super().__init__()
+        self.setStyleSheet("background-color: #f0f0f0;")
+
+    def line_number_area_width(self):
+        """
+        Computes the lineNumber area width depending on the number of lines
+        in the document
+
+        :return: Width
+        """
+        digits = 2
+        count = max(1, self.editor.blockCount())
+        while count >= 100:
+            count /= 10
+            digits += 1
+        space = 5 + self.editor.fontMetrics().width("9") * digits
+
+        return space
+
+
 class PyQodeEditor(CodeEdit):
 
-    MONOKAI_THEME = 'monokai'
+    THEME = 'qt'
 
     def __init__(self):
         super().__init__()
@@ -31,13 +54,12 @@ class PyQodeEditor(CodeEdit):
 
     def configure_modes_and_panels(self):
         # Modes
-        self.modes.append(modes.AutoIndentMode())
         self.modes.append(modes.PygmentsSyntaxHighlighter(self.document()))
+        self.modes.get(modes.PygmentsSyntaxHighlighter).pygments_style = self.THEME
+        self.modes.append(modes.AutoIndentMode())
 
         # Panels
-        line_num_area = panels.LineNumberPanel()
-        line_num_area.setStyleSheet("background-color: #f0f0f0;")
-        self.panels.append(line_num_area, api.Panel.Position.LEFT)
+        self.panels.append(LineNumberPanel(), api.Panel.Position.LEFT)
         self.panels.append(panels.SearchAndReplacePanel(), api.Panel.Position.BOTTOM)
 
     # Start the backend as soon as possible
