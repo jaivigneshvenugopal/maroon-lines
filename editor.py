@@ -110,7 +110,7 @@ class PyQodeEditor(CodeEdit):
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
 
         scroll_bar = self.verticalScrollBar()
-        scroll_bar.rangeChanged.connect(self.move_scroll)
+        scroll_bar.rangeChanged.connect(self.ensure_cursor_is_visible)
         scroll_bar.setStyleSheet(
             """QScrollBar:vertical {
                     width: 12px;
@@ -154,8 +154,8 @@ class PyQodeEditor(CodeEdit):
                     height: 0px;
                   }""")
 
-    def move_scroll(self, _, max_val):
-        self.verticalScrollBar().setSliderPosition(max_val)
+    def ensure_cursor_is_visible(self):
+        self.ensureCursorVisible()
 
 
 if __name__ == "__main__":
