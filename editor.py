@@ -49,12 +49,18 @@ class PyQodeEditor(CodeEdit):
         self.configure_modes_and_panels()
         self.configure_font()
         self.configure_aesthetics()
+        self.configure_shortcuts()
         # self.file.open(__file__)
+
+    def configure_shortcuts(self):
+        self.action_swap_line_up.setShortcut('Ctrl+Shift+Up')
+        self.action_swap_line_down.setShortcut('Ctrl+Shift+Down')
 
     def configure_modes_and_panels(self):
         # Modes
         self.modes.append(modes.PygmentsSyntaxHighlighter(self.document()))
         self.modes.get(modes.PygmentsSyntaxHighlighter).pygments_style = self.THEME
+        self.modes.append(modes.IndenterMode())
         self.modes.append(modes.AutoIndentMode())
 
         # Panels
