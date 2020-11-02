@@ -75,6 +75,7 @@ class PyQodeEditor(CodeEdit):
         self.modes.get(modes.PygmentsSyntaxHighlighter).pygments_style = self.THEME
         self.modes.append(modes.IndenterMode())
         self.modes.append(modes.AutoIndentMode())
+        self.modes.append(modes.AutoCompleteMode())
 
         # Panels
         self.panels.append(LineNumberPanel(), api.Panel.Position.LEFT)
