@@ -4,19 +4,12 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 
-from qutepart import *
 from editor import PyQodeEditor
 from repository_control_utils import *
 from timeline import Timeline
 from dialog import Dialog
 from menu_bar import MenuBar
 from IPython import embed
-
-
-class Editor(Qutepart):
-
-    def __init__(self):
-        super().__init__()
 
 
 class MaroonLines(QMainWindow):
