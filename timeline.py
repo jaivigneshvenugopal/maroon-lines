@@ -11,6 +11,7 @@ from IPython import embed
 class Timeline(QMainWindow):
 
     # Signals
+    request_to_change_node = PyQt5.QtCore.pyqtSignal(str)
     curr_node_changed = PyQt5.QtCore.pyqtSignal(str)
     num_nodes_changed = PyQt5.QtCore.pyqtSignal(str)
 
@@ -176,7 +177,7 @@ class Timeline(QMainWindow):
 
     def pick_event(self, event):
         if hasattr(event, 'nodes') and event.nodes and event.nodes[0] != self.curr:
-            self.switch_node_colors(event.nodes[0])
+            self.request_to_change_node.emit(event.nodes[0])
 
     def sequential_layout(self, graph):
         seq_layout = {}

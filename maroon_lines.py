@@ -194,6 +194,7 @@ class MaroonLines(QMainWindow):
 
     # Refactored
     def configure_graph(self):
+        self.graph.request_to_change_node.connect(self.handle_request_to_change_node)
         self.graph.curr_node_changed.connect(self.load_repo_file)
         self.graph.num_nodes_changed.connect(self.update_status_bar_num_nodes)
         self.layout.addWidget(self.graph, 15)
@@ -306,6 +307,12 @@ class MaroonLines(QMainWindow):
 
     def update_status_bar_file_path(self):
         self.status_bar_file_path_label.setText(self.file_name)
+
+    def handle_request_to_change_node(self, node):
+        if not self.content_is_saved(window_close=False):
+            return
+
+        self.graph.switch_node_colors(node)
 
     def display_graph_in_edit_mode(self):
         if not self.file_path or self.file_in_edit_mode:

@@ -10,7 +10,6 @@ from pyqode.core import panels
 from pyqode.core.panels import LineNumberPanel as DefaultLineNumberPanel
 from pyqode.qt import QtWidgets
 
-from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 
