@@ -90,13 +90,8 @@ class PyQodeEditor(CodeEdit):
         self.configure_scrollbar_aesthetics()
 
     def configure_font(self):
-        fd = QFontDatabase()
-        font_id = fd.addApplicationFont('fonts/FiraCode-Regular.ttf')
-        families = fd.applicationFontFamilies(font_id)
-        print(families)
-
         self.font_name = 'Source Code Pro'
-        self.font_size = 14
+        self.font_size = 12
 
     def set_text(self, text):
         self.setPlainText(text, 'text/plain', 'utf-8')
