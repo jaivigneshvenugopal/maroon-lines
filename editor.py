@@ -51,7 +51,7 @@ class PyQodeEditor(CodeEdit):
         self.configure_font()
         self.configure_aesthetics()
         self.configure_actions_and_shortcuts()
-        # self.file.open(__file__)
+        self.file.open(__file__)
 
     def configure_actions_and_shortcuts(self):
         self.action_swap_line_up.setShortcut('Ctrl+Shift+Up')
@@ -90,6 +90,11 @@ class PyQodeEditor(CodeEdit):
         self.configure_scrollbar_aesthetics()
 
     def configure_font(self):
+        fd = QFontDatabase()
+        font_id = fd.addApplicationFont('fonts/FiraCode-Regular.ttf')
+        families = fd.applicationFontFamilies(font_id)
+        print(families)
+
         self.font_name = 'Source Code Pro'
         self.font_size = 14
 
