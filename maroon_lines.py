@@ -296,10 +296,6 @@ class MaroonLines(QMainWindow):
 
     # Instantiate editor
     def configure_editor(self):
-        # Configure editor margins
-        # editor_margin = self.editor.getMargins()[0]
-        # editor_margin.setStyleSheet('background-color: #f0f0f0')
-
         self.editor.textChanged.connect(self.update_relevant_components)
         self.editor.installEventFilter(self)
         self.layout.addWidget(self.editor, 85)

@@ -34,10 +34,10 @@ class PyQodeEditor(CodeEdit):
         self.modes.append(modes.PygmentsSyntaxHighlighter(self.document()))
 
         # Panels
-        self.panels.append(panels.SearchAndReplacePanel(), api.Panel.Position.BOTTOM)
         line_num_area = panels.LineNumberPanel()
         line_num_area.setStyleSheet("background-color: #f0f0f0;")
         self.panels.append(line_num_area, api.Panel.Position.LEFT)
+        self.panels.append(panels.SearchAndReplacePanel(), api.Panel.Position.BOTTOM)
 
     # Start the backend as soon as possible
     def configure_backend(self):
@@ -65,7 +65,7 @@ class PyQodeEditor(CodeEdit):
 
     def configure_scrollbar_aesthetics(self):
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-        scroll_bar = self.verticalScrollBar()
+        scroll_bar = QtWidgets.QScrollBar()
         scroll_bar.setStyleSheet(
             """QScrollBar:vertical {
                     width: 12px;
@@ -108,49 +108,7 @@ class PyQodeEditor(CodeEdit):
                   QScrollBar::sub-page:vertical {
                     height: 0px;
                   }""")
-        scroll_bar = self.horizontalScrollBar()
-        scroll_bar.setStyleSheet(
-            """QScrollBar:horizontal {
-                    width: 12px;
-                    margin: 0;
-                    background: #fcfcfc;
-                  }
-
-                  QScrollBar::handle:horizontal {
-                    border: 12px solid #d9d9d9;
-                    background: #33333d;
-                    min-height: 10px;
-                  }
-
-                  QScrollBar::add-line:horizontal {
-                    height: 0px;
-                  }
-
-                  QScrollBar::sub-line:horizontal {
-                    height: 0px;
-                  }
-
-                  QScrollBar::up-arrow:horizontal {
-                    border: none;
-                    height: 0px;
-                    width: 0px;
-                    background: none;
-                    color: none;
-                  }
-
-                  QScrollBar::down-arrow:horizontal {
-                    border: none;
-                    height: 0px;
-                    width: 0px;
-                    background: none;
-                    color: none;
-                  }
-                  QScrollBar::add-page:horizontal {
-                    height: 0px;
-                  }
-                  QScrollBar::sub-page:horizontal {
-                    height: 0px;
-                  }""")
+        self.setVerticalScrollBar(scroll_bar)
 
 
 if __name__ == "__main__":
