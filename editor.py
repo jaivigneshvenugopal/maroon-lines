@@ -12,6 +12,7 @@ from pyqode.qt import QtWidgets
 
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
 
 
 class LineNumberPanel(DefaultLineNumberPanel):
@@ -49,12 +50,24 @@ class PyQodeEditor(CodeEdit):
         self.configure_modes_and_panels()
         self.configure_font()
         self.configure_aesthetics()
-        self.configure_shortcuts()
+        self.configure_actions_and_shortcuts()
         # self.file.open(__file__)
 
-    def configure_shortcuts(self):
+    def configure_actions_and_shortcuts(self):
         self.action_swap_line_up.setShortcut('Ctrl+Shift+Up')
         self.action_swap_line_down.setShortcut('Ctrl+Shift+Down')
+
+        # Zoom in
+        zoom_in = QAction('Zoom In', self)
+        zoom_in.setShortcut('Ctrl+=')
+        zoom_in.triggered.connect(self.zoom_in)
+        self.add_action(zoom_in, sub_menu=None)
+
+        # Zoom out
+        zoom_in = QAction('Zoom Out', self)
+        zoom_in.setShortcut('Ctrl+-')
+        zoom_in.triggered.connect(self.zoom_out)
+        self.add_action(zoom_in, sub_menu=None)
 
     def configure_modes_and_panels(self):
         # Modes
