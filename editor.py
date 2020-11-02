@@ -9,6 +9,7 @@ from pyqode.core import modes
 from pyqode.core import panels
 from pyqode.qt import QtWidgets
 
+from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 
@@ -64,8 +65,11 @@ class PyQodeEditor(CodeEdit):
         return max(1, self.blockCount())
 
     def configure_scrollbar_aesthetics(self):
+        self.setCenterOnScroll(False)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-        scroll_bar = QtWidgets.QScrollBar()
+
+        scroll_bar = self.verticalScrollBar()
+        scroll_bar.rangeChanged.connect(self.move_scroll)
         scroll_bar.setStyleSheet(
             """QScrollBar:vertical {
                     width: 12px;
@@ -108,7 +112,9 @@ class PyQodeEditor(CodeEdit):
                   QScrollBar::sub-page:vertical {
                     height: 0px;
                   }""")
-        self.setVerticalScrollBar(scroll_bar)
+
+    def move_scroll(self, _, max_val):
+        self.verticalScrollBar().setSliderPosition(max_val)
 
 
 if __name__ == "__main__":
