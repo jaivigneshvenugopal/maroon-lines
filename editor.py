@@ -49,11 +49,14 @@ class LineNumberPanel(DefaultLineNumberPanel):
 
 class PyQodeEditor(CodeEdit):
 
+    syntax_highlighting = pyqtSignal()
+
     THEME = 'qt'
 
     def __init__(self):
         super().__init__()
 
+        self.highlighter = None
         self.lexers = {
             'py': PythonLexer,
             'c': CLexer,
@@ -106,15 +109,16 @@ class PyQodeEditor(CodeEdit):
         self.panels.append(panels.SearchAndReplacePanel(), api.Panel.Position.BOTTOM)
 
     def configure_syntax_highlighting(self, extension=None):
-        if modes.PygmentsSyntaxHighlighter in self.modes:
-            self.highlighting_syntax = True
+        if self.highlighter:
             self.modes.remove(modes.PygmentsSyntaxHighlighter)
+            self.highlighter = None
 
         if extension in self.lexers:
             lexer = self.lexers[extension]
-            syntax_highlighter = modes.PygmentsSyntaxHighlighter(self.document(), lexer=lexer())
-            syntax_highlighter.pygments_style = self.THEME
-            self.modes.append(syntax_highlighter)
+            self.syntax_highlighting.emit()
+            self.highlighter = modes.PygmentsSyntaxHighlighter(self.document(), lexer=lexer())
+            self.highlighter.pygments_style = self.THEME
+            self.modes.append(self.highlighter)
 
     # Start the backend as soon as possible
     def configure_backend(self):

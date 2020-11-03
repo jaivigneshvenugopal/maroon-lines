@@ -59,8 +59,9 @@ class MaroonLines(QMainWindow):
         # File-related properties
         self.file_path = None
         self.file_hash = None
-        self.file_in_edit_mode = False
+        self.file_is_already_in_edit_mode = False
 
+        # Editor-related properties
         self.syntax_highlighting = False
 
         # Shortcuts and corresponding functions
@@ -219,7 +220,7 @@ class MaroonLines(QMainWindow):
 
         self.update_file_path_and_hash(file_path=None)
         self.editor.clear_text()
-        self.file_in_edit_mode = False
+        self.file_is_already_in_edit_mode = False
         self.graph.render_graph(index=None)
 
     # Refactored
@@ -233,7 +234,7 @@ class MaroonLines(QMainWindow):
             self.load_file(file_path)
             self.update_file_path_and_hash(file_path)
             self.update_index()
-            self.file_in_edit_mode = False
+            self.file_is_already_in_edit_mode = False
             self.graph.render_graph(repo_index(self.file_path))
 
     # Refactored
@@ -249,7 +250,7 @@ class MaroonLines(QMainWindow):
                 self.store_file(self.file_path)
 
             self.file_hash = file_hash
-            self.file_in_edit_mode = False
+            self.file_is_already_in_edit_mode = False
             self.graph.render_graph(repo_index(self.file_path))
             return True
 
@@ -269,7 +270,7 @@ class MaroonLines(QMainWindow):
         self.store_file(file_path)
         self.update_file_path_and_hash(file_path)
         self.update_index()
-        self.file_in_edit_mode = False
+        self.file_is_already_in_edit_mode = False
         self.graph.render_graph(repo_index(self.file_path))
         return True
 
@@ -287,7 +288,7 @@ class MaroonLines(QMainWindow):
         self.move_file(file_path)
         self.update_file_path_and_hash(file_path)
         self.update_index()
-        self.file_in_edit_mode = False
+        self.file_is_already_in_edit_mode = False
         self.graph.render_graph(repo_index(self.file_path))
 
     # Refactored
@@ -296,9 +297,13 @@ class MaroonLines(QMainWindow):
 
     # Instantiate editor
     def configure_editor(self):
+        self.editor.syntax_highlighting.connect(self.set_syntax_highlighting_flag)
         self.editor.textChanged.connect(self.update_relevant_components)
         self.editor.installEventFilter(self)
         self.layout.addWidget(self.editor, 85)
+
+    def set_syntax_highlighting_flag(self):
+        self.syntax_highlighting = True
 
     # Slot Functions
     def update_relevant_components(self):
@@ -321,19 +326,19 @@ class MaroonLines(QMainWindow):
         self.graph.switch_node_colors(node)
 
     def display_graph_in_edit_mode(self):
-        if not self.file_path or self.file_in_edit_mode:
+        if not self.file_path or not self.file_hash or self.file_is_already_in_edit_mode:
             return
 
         if self.curr_node_changed:
             self.curr_node_changed = False
             return
 
-        # if not self.file_content_changed():
-        #     return
+        if self.syntax_highlighting:
+            self.syntax_highlighting = False
+            return
 
-        print('color scheme')
         self.graph.render_graph(self.add_unsaved_node())
-        self.file_in_edit_mode = True
+        self.file_is_already_in_edit_mode = True
 
     def add_unsaved_node(self):
         index = repo_index(self.file_path)
@@ -349,9 +354,9 @@ class MaroonLines(QMainWindow):
         self.curr_node_changed = True
         self.editor.set_text(repo_object(self.file_path, file_hash))
         self.store_file(self.file_path)
-        if self.file_in_edit_mode:
+        if self.file_is_already_in_edit_mode:
             self.graph.render_graph(repo_index(self.file_path))
-            self.file_in_edit_mode = False
+            self.file_is_already_in_edit_mode = False
 
     # Helper functions
     def load_file(self, file_path):
