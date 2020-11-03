@@ -27,6 +27,10 @@ class MaroonLines(QMainWindow):
         if self.rename_move_action:
             self.rename_move_action.setEnabled(value != None)
 
+        if self.editor:
+            extension = value.split('.')[-1] if value else None
+            self.editor.configure_syntax_highlighting(extension)
+
     @property
     def file_name(self):
         return self.file_path or 'untitled'
@@ -56,6 +60,8 @@ class MaroonLines(QMainWindow):
         self.file_path = None
         self.file_hash = None
         self.file_in_edit_mode = False
+
+        self.syntax_highlighting = False
 
         # Shortcuts and corresponding functions
         self.shortcut_arrow_functions = {
@@ -322,6 +328,10 @@ class MaroonLines(QMainWindow):
             self.curr_node_changed = False
             return
 
+        # if not self.file_content_changed():
+        #     return
+
+        print('color scheme')
         self.graph.render_graph(self.add_unsaved_node())
         self.file_in_edit_mode = True
 
@@ -361,6 +371,9 @@ class MaroonLines(QMainWindow):
 
     def index_curr_is_different_from_file_in_editor(self):
         return repo_index_curr_object(self.file_path) != get_hash(self.editor.get_text())
+
+    def file_content_changed(self):
+        return self.file_hash != get_hash(self.editor.get_text())
 
     def update_index(self):
         if not repo_exists(self.file_path):

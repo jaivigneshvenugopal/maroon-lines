@@ -14,6 +14,16 @@ from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 
+from pygments.lexers.python import PythonLexer
+from pygments.lexers.jvm import JavaLexer, ScalaLexer
+from pygments.lexers.c_cpp import CppLexer, CLexer
+from pygments.lexers.javascript import JavascriptLexer
+from pygments.lexers.html import HtmlLexer
+from pygments.lexers.css import CssLexer
+from pygments.lexers.sql import SqlLexer
+from pygments.lexers.shell import BashLexer
+from pygments.lexers.ruby import RubyLexer
+
 
 class LineNumberPanel(DefaultLineNumberPanel):
     def __init__(self):
@@ -43,15 +53,30 @@ class PyQodeEditor(CodeEdit):
 
     def __init__(self):
         super().__init__()
-        self.configure_editor()
 
-    def configure_editor(self):
+        self.lexers = {
+            'py': PythonLexer,
+            'c': CLexer,
+            'h': CLexer,
+            'idc': CLexer,
+            'cpp': CppLexer,
+            'java': JavaLexer,
+            'js': JavascriptLexer,
+            'sh': BashLexer,
+            'sql': SqlLexer,
+            'css': CssLexer,
+            'html': HtmlLexer,
+            'rb': RubyLexer,
+            'scala': ScalaLexer
+        }
+
+        # Instantiate Components
         self.configure_backend()
         self.configure_modes_and_panels()
         self.configure_font()
         self.configure_aesthetics()
         self.configure_actions_and_shortcuts()
-        self.file.open(__file__)
+        # self.file.open(__file__)
 
     def configure_actions_and_shortcuts(self):
         self.action_swap_line_up.setShortcut('Ctrl+Shift+Up')
@@ -70,9 +95,8 @@ class PyQodeEditor(CodeEdit):
         self.add_action(zoom_in, sub_menu=None)
 
     def configure_modes_and_panels(self):
+
         # Modes
-        self.modes.append(modes.PygmentsSyntaxHighlighter(self.document()))
-        self.modes.get(modes.PygmentsSyntaxHighlighter).pygments_style = self.THEME
         self.modes.append(modes.IndenterMode())
         self.modes.append(modes.AutoIndentMode())
         self.modes.append(modes.AutoCompleteMode())
@@ -80,6 +104,17 @@ class PyQodeEditor(CodeEdit):
         # Panels
         self.panels.append(LineNumberPanel(), api.Panel.Position.LEFT)
         self.panels.append(panels.SearchAndReplacePanel(), api.Panel.Position.BOTTOM)
+
+    def configure_syntax_highlighting(self, extension=None):
+        if modes.PygmentsSyntaxHighlighter in self.modes:
+            self.highlighting_syntax = True
+            self.modes.remove(modes.PygmentsSyntaxHighlighter)
+
+        if extension in self.lexers:
+            lexer = self.lexers[extension]
+            syntax_highlighter = modes.PygmentsSyntaxHighlighter(self.document(), lexer=lexer())
+            syntax_highlighter.pygments_style = self.THEME
+            self.modes.append(syntax_highlighter)
 
     # Start the backend as soon as possible
     def configure_backend(self):
