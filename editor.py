@@ -52,9 +52,11 @@ class LineNumberPanel(DefaultLineNumberPanel):
 
 class PyQodeEditor(CodeEdit):
 
+    language = pyqtSignal(str)
     syntax_highlighting = pyqtSignal()
 
     THEME = 'qt'
+    DEFAULT_LANGUAGE = 'Text'
 
     def __init__(self):
         super().__init__()
@@ -114,11 +116,13 @@ class PyQodeEditor(CodeEdit):
 
     def configure_syntax_highlighting(self, extension=None):
         if self.highlighter:
+            self.language.emit(self.DEFAULT_LANGUAGE)
             self.modes.remove(modes.PygmentsSyntaxHighlighter)
             self.highlighter = None
 
         if extension in self.lexers:
             lexer = self.lexers[extension]
+            self.language.emit(lexer().name)
             self.syntax_highlighting.emit()
             self.highlighter = modes.PygmentsSyntaxHighlighter(self.document(), lexer=lexer())
             self.highlighter.pygments_style = self.THEME

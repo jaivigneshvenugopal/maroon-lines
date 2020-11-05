@@ -52,6 +52,7 @@ class MaroonLines(QMainWindow):
         self.status_bar_num_lines_label = QLabel()
         self.status_bar_num_nodes_label = QLabel()
         self.status_bar_file_path_label = QLabel()
+        self.status_bar_curr_language_label = QLabel()
 
         # Menu bar related properties
         self.rename_move_action = None
@@ -166,7 +167,6 @@ class MaroonLines(QMainWindow):
             }
         """)
 
-        self.status_bar_num_lines_label = QLabel()
         self.status_bar_num_lines_label.setAlignment(Qt.AlignLeft)
         self.status_bar_num_lines_label.setStyleSheet("""
             QLabel {
@@ -175,7 +175,6 @@ class MaroonLines(QMainWindow):
             }
         """)
 
-        self.status_bar_num_nodes_label = QLabel()
         self.status_bar_num_nodes_label.setAlignment(Qt.AlignRight)
         self.status_bar_num_nodes_label.setStyleSheet("""
             QLabel {
@@ -184,17 +183,26 @@ class MaroonLines(QMainWindow):
             }
         """)
 
-        self.status_bar_file_path_label = QLabel()
         self.status_bar_file_path_label.setAlignment(Qt.AlignCenter)
         self.status_bar_file_path_label.setStyleSheet("""
             QLabel {
-                color: rgb(205,215,211)
+                color: rgb(205,215,211);
             }
         """)
 
-        self.status_bar.addPermanentWidget(self.status_bar_num_lines_label, 30)
-        self.status_bar.addPermanentWidget(self.status_bar_file_path_label, 100)
-        self.status_bar.addPermanentWidget(self.status_bar_num_nodes_label, 30)
+        self.status_bar_curr_language_label.setText('Text')
+        self.status_bar_curr_language_label.setAlignment(Qt.AlignRight)
+        self.status_bar_curr_language_label.setStyleSheet("""
+            QLabel {
+                color: rgb(205,215,211);
+                padding-right: 2px;
+            }
+        """)
+
+        self.status_bar.addPermanentWidget(self.status_bar_num_lines_label, 40)
+        self.status_bar.addPermanentWidget(self.status_bar_file_path_label, 120)
+        self.status_bar.addPermanentWidget(self.status_bar_curr_language_label, 25)
+        self.status_bar.addPermanentWidget(self.status_bar_num_nodes_label, 15)
 
         self.update_status_bar_file_path()
         self.update_status_bar_num_lines()
@@ -297,6 +305,7 @@ class MaroonLines(QMainWindow):
 
     # Instantiate editor
     def configure_editor(self):
+        self.editor.language.connect(self.update_status_bar_language)
         self.editor.syntax_highlighting.connect(self.set_syntax_highlighting_flag)
         self.editor.textChanged.connect(self.update_relevant_components)
         self.editor.installEventFilter(self)
@@ -318,6 +327,9 @@ class MaroonLines(QMainWindow):
 
     def update_status_bar_file_path(self):
         self.status_bar_file_path_label.setText(self.file_name)
+
+    def update_status_bar_language(self, language):
+        self.status_bar_curr_language_label.setText(language)
 
     def handle_request_to_change_node(self, node):
         if not self.content_is_saved(window_close=False):
