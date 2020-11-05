@@ -23,6 +23,9 @@ from pygments.lexers.css import CssLexer
 from pygments.lexers.sql import SqlLexer
 from pygments.lexers.shell import BashLexer
 from pygments.lexers.ruby import RubyLexer
+from pygments.lexers.go import GoLexer
+from pygments.lexers.matlab import MatlabLexer
+from pygments.lexers.haskell import HaskellLexer
 
 
 class LineNumberPanel(DefaultLineNumberPanel):
@@ -58,10 +61,8 @@ class PyQodeEditor(CodeEdit):
 
         self.highlighter = None
         self.lexers = {
-            'py': PythonLexer,
             'c': CLexer,
-            'h': CLexer,
-            'idc': CLexer,
+            'py': PythonLexer,
             'cpp': CppLexer,
             'java': JavaLexer,
             'js': JavascriptLexer,
@@ -70,7 +71,10 @@ class PyQodeEditor(CodeEdit):
             'css': CssLexer,
             'html': HtmlLexer,
             'rb': RubyLexer,
-            'scala': ScalaLexer
+            'scala': ScalaLexer,
+            'go': GoLexer,
+            'm': MatlabLexer,
+            'hs': HaskellLexer
         }
 
         # Instantiate Components
