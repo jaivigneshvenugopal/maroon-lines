@@ -201,6 +201,52 @@ class PyQodeEditor(CodeEdit):
                     height: 0px;
                   }""")
 
+        scroll_bar = self.horizontalScrollBar()
+        scroll_bar.setStyleSheet(
+            """QScrollBar:horizontal {
+                    height: 12px;
+                    margin: 0;
+                    background: #fcfcfc;
+                  }
+    
+                  QScrollBar::handle:horizontal {
+                    border: 12px solid #d9d9d9;
+                    background: #33333d;
+                    min-width: 10px;
+                  }
+                  
+                  QScrollBar::add-line:horizontal {
+                    width: 0px;
+                  }
+
+                  QScrollBar::sub-line:horizontal {
+                    width: 0px;
+                  }
+
+                  QScrollBar::up-arrow:horizontal {
+                    border: none;
+                    height: 0px;
+                    width: 0px;
+                    background: none;
+                    color: none;
+                  }
+                  
+                  QScrollBar::down-arrow:horizontal {
+                    border: none;
+                    height: 0px;
+                    width: 0px;
+                    background: none;
+                    color: none;
+                  }
+                  
+                  QScrollBar::add-page:horizontal {
+                    width: 0px;
+                  }
+                  
+                  QScrollBar::sub-page:horizontal {
+                    width: 0px;
+                  }""")
+
     def ensure_cursor_is_visible(self):
         self.ensureCursorVisible()
 
