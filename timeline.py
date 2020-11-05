@@ -1,5 +1,6 @@
 import PyQt5
 import matplotlib.pyplot as plt
+from matplotlib.backend_bases import MouseButton
 import networkx as nx
 from PyQt5.QtWidgets import *
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -176,6 +177,9 @@ class Timeline(QMainWindow):
         return max(30.0, min(adjusted_node_x_size, adjusted_node_y_size))
 
     def pick_event(self, event):
+        if event.mouseevent.button != MouseButton.LEFT:
+            return
+
         if hasattr(event, 'nodes') and event.nodes and event.nodes[0] != self.curr:
             self.request_to_change_node.emit(event.nodes[0])
 
