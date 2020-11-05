@@ -27,6 +27,9 @@ class MaroonLines(QMainWindow):
         if self.rename_move_action:
             self.rename_move_action.setEnabled(value != None)
 
+        if self.clear_history_action:
+            self.clear_history_action.setEnabled(value != None)
+
         if self.editor:
             extension = value.split('.')[-1] if value else None
             self.editor.configure_syntax_highlighting(extension)
@@ -56,6 +59,7 @@ class MaroonLines(QMainWindow):
 
         # Menu bar related properties
         self.rename_move_action = None
+        self.clear_history_action = None
 
         # File-related properties
         self.file_path = None
@@ -151,7 +155,11 @@ class MaroonLines(QMainWindow):
         self.rename_move_action.setShortcut("Ctrl+M")
         self.rename_move_action.triggered.connect(self.handle_rename_move_action)
         self.rename_move_action.setEnabled(False)
-        
+
+        self.clear_history_action = repo_menu.addAction('Clear History')
+        self.clear_history_action.triggered.connect(self.handle_clear_history_action)
+        self.clear_history_action.setEnabled(False)
+
     # Development code - delete during production
     def handle_insert_action(self):
         self.editor.set_text(str(random()))
@@ -303,6 +311,14 @@ class MaroonLines(QMainWindow):
     # Refactored
     def handle_exit_action(self):
         self.close()
+
+    def handle_clear_history_action(self):
+        if not self.content_is_saved(window_close=False):
+            return
+
+        rebuilt_repo(self.file_path, self.editor.get_text())
+        self.update_index()
+        self.graph.render_graph(repo_index(self.file_path))
 
     # Instantiate editor
     def configure_editor(self):

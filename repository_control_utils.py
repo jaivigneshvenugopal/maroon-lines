@@ -43,6 +43,11 @@ def remove_repo(file_path):
         shutil.rmtree(repo_path(file_path))
 
 
+def rebuilt_repo(file_path, file_data):
+    remove_repo(file_path)
+    init_repo(file_path, file_data)
+
+
 def repo_exists(file_path):
     return os.path.exists(repo_path(file_path))
 
