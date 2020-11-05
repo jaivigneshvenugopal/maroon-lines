@@ -162,7 +162,7 @@ class PyQodeEditor(CodeEdit):
             """QScrollBar:vertical {
                     width: 12px;
                     margin: 0;
-                    background: #fcfcfc;
+                    background: #f0f0f0;
                   }
 
                   QScrollBar::handle:vertical {
