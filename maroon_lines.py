@@ -119,38 +119,39 @@ class MaroonLines(QMainWindow):
         self.configure_menu_bar_actions()
 
     def configure_menu_bar_actions(self):
-        menu = self.menu_bar.addMenu('File')
+        file_menu = self.menu_bar.addMenu('File')
+        repo_menu = self.menu_bar.addMenu('Repo')
 
-        new_action = menu.addAction('New')
+        new_action = file_menu.addAction('New')
         new_action.setShortcut("Ctrl+N")
         new_action.triggered.connect(self.handle_new_action)
 
-        open_action = menu.addAction('Open')
+        open_action = file_menu.addAction('Open')
         open_action.setShortcut("Ctrl+O")
         open_action.triggered.connect(self.handle_open_action)
 
-        save_action = menu.addAction('Save')
+        save_action = file_menu.addAction('Save')
         save_action.setShortcut("Ctrl+S")
         save_action.triggered.connect(self.handle_save_action)
 
-        save_as_action = menu.addAction('Save As...')
+        save_as_action = file_menu.addAction('Save As...')
         save_as_action.setShortcut("Shift+Ctrl+S")
         save_as_action.triggered.connect(self.handle_save_as_action)
 
-        self.rename_move_action = menu.addAction('Move/Rename')
-        self.rename_move_action.setShortcut("Ctrl+M")
-        self.rename_move_action.triggered.connect(self.handle_rename_move_action)
-        self.rename_move_action.setEnabled(False)
-
-        exit_action = menu.addAction('Exit')
+        exit_action = file_menu.addAction('Exit')
         exit_action.setShortcut("Ctrl+W")
         exit_action.triggered.connect(self.handle_exit_action)
 
         # Development code - delete during production
-        insert_test_text = menu.addAction('Insert Random Text and Save File')
+        insert_test_text = file_menu.addAction('Insert Random Text and Save File')
         insert_test_text.setShortcut("Ctrl+L")
         insert_test_text.triggered.connect(self.handle_insert_action)
 
+        self.rename_move_action = repo_menu.addAction('Move/Rename')
+        self.rename_move_action.setShortcut("Ctrl+M")
+        self.rename_move_action.triggered.connect(self.handle_rename_move_action)
+        self.rename_move_action.setEnabled(False)
+        
     # Development code - delete during production
     def handle_insert_action(self):
         self.editor.set_text(str(random()))
