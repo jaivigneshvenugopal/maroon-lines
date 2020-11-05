@@ -200,7 +200,7 @@ class MaroonLines(QMainWindow):
         """)
 
         self.status_bar_curr_language_label.setText('Text')
-        self.status_bar_curr_language_label.setAlignment(Qt.AlignRight)
+        self.status_bar_curr_language_label.setAlignment(Qt.AlignLeft)
         self.status_bar_curr_language_label.setStyleSheet("""
             QLabel {
                 color: rgb(205,215,211);
@@ -208,10 +208,10 @@ class MaroonLines(QMainWindow):
             }
         """)
 
-        self.status_bar.addPermanentWidget(self.status_bar_num_lines_label, 40)
+        self.status_bar.addPermanentWidget(self.status_bar_num_lines_label, 10)
+        self.status_bar.addPermanentWidget(self.status_bar_curr_language_label, 30)
         self.status_bar.addPermanentWidget(self.status_bar_file_path_label, 120)
-        self.status_bar.addPermanentWidget(self.status_bar_curr_language_label, 25)
-        self.status_bar.addPermanentWidget(self.status_bar_num_nodes_label, 15)
+        self.status_bar.addPermanentWidget(self.status_bar_num_nodes_label, 40)
 
         self.update_status_bar_file_path()
         self.update_status_bar_num_lines()
