@@ -3,7 +3,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 
 
-class Dialog(QDialog):
+class UnsavedContentDialog(QDialog):
     def __init__(self, text, window_close):
         super().__init__()
 

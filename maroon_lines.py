@@ -7,7 +7,8 @@ from PyQt5.QtCore import *
 from editor import PyQodeEditor
 from repository_control_utils import *
 from timeline import Timeline
-from dialog import Dialog
+from unsaved_content_dialog import UnsavedContentDialog
+from alert_dialog import AlertDialog
 from menu_bar import MenuBar
 from IPython import embed
 
@@ -313,12 +314,20 @@ class MaroonLines(QMainWindow):
         self.close()
 
     def handle_clear_history_action(self):
-        if not self.content_is_saved(window_close=False):
+        dialog = AlertDialog(self.file_path)
+        clicked_button = dialog.exec_()
+
+        if not clicked_button or clicked_button == QDialogButtonBox.Cancel:
             return
 
-        rebuilt_repo(self.file_path, self.editor.get_text())
-        self.update_index()
-        self.graph.render_graph(repo_index(self.file_path))
+        if self.index_curr_is_different_from_file_in_editor():
+            rebuilt_repo(self.file_path, repo_object(self.file_path, self.file_hash))
+            self.graph.render_graph(self.add_unsaved_node())
+            self.file_is_already_in_edit_mode = True
+        else:
+            rebuilt_repo(self.file_path, self.editor.get_text())
+            self.graph.render_graph(repo_index(self.file_path))
+            self.file_is_already_in_edit_mode = False
 
     # Instantiate editor
     def configure_editor(self):
@@ -438,7 +447,7 @@ class MaroonLines(QMainWindow):
                 (self.file_path and self.file_hash == get_hash(self.editor.get_text())):
             return True
 
-        dialog = Dialog(self.file_name, window_close)
+        dialog = UnsavedContentDialog(self.file_name, window_close)
         clicked_button = dialog.exec_()
 
         if not clicked_button or clicked_button == QDialogButtonBox.Cancel:
