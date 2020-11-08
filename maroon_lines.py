@@ -7,7 +7,7 @@ from PyQt5.QtCore import *
 from editor import PyQodeEditor
 from repository_control_utils import *
 from timeline import Timeline
-from unsaved_content_dialog import UnsavedContentDialog
+from components.unsaved_content_dialog import UnsavedContentDialog
 from components.alert_dialog import AlertDialog
 from components.menu_bar import MenuBar
 
@@ -93,7 +93,7 @@ class MaroonLines(QMainWindow):
         if not self.file_path or event.key() not in self.shortcut_arrow_functions:
             return False
 
-        if not self.content_is_saved(window_close=False):
+        if not self.content_is_saved(close_window=False):
             return False
 
         if event.isAutoRepeat():
@@ -105,7 +105,7 @@ class MaroonLines(QMainWindow):
         return True
 
     def closeEvent(self, event):
-        if not self.content_is_saved(window_close=True):
+        if not self.content_is_saved(close_window=True):
             event.ignore()
         else:
             event.accept()
@@ -232,7 +232,7 @@ class MaroonLines(QMainWindow):
 
     # Refactored
     def handle_new_action(self):
-        if not self.content_is_saved(window_close=False):
+        if not self.content_is_saved(close_window=False):
             return
 
         self.update_file_path_and_hash(file_path=None)
@@ -242,7 +242,7 @@ class MaroonLines(QMainWindow):
 
     # Refactored
     def handle_open_action(self):
-        if not self.content_is_saved(window_close=False):
+        if not self.content_is_saved(close_window=False):
             return
 
         file_info = QFileDialog.getOpenFileName(self, 'Open File')
@@ -357,7 +357,7 @@ class MaroonLines(QMainWindow):
         self.status_bar_curr_language_label.setText(language)
 
     def handle_request_to_change_node(self, node):
-        if not self.content_is_saved(window_close=False):
+        if not self.content_is_saved(close_window=False):
             return
 
         self.graph.switch_node_colors(node)
@@ -441,12 +441,14 @@ class MaroonLines(QMainWindow):
         else:
             raise Exception('File does not exist to move/rename')
 
-    def content_is_saved(self, window_close):
+    def content_is_saved(self, close_window):
         if (not self.file_path and not self.editor.get_text()) or \
                 (self.file_path and self.file_hash == get_hash(self.editor.get_text())):
             return True
 
-        dialog = UnsavedContentDialog(self.file_name, window_close)
+        dialog = UnsavedContentDialog(self.file_name,
+                                      text_to_display='Do you want to save your changes?',
+                                      close_window=close_window)
         clicked_button = dialog.exec_()
 
         if not clicked_button or clicked_button == QDialogButtonBox.Cancel:
