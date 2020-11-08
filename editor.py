@@ -130,7 +130,7 @@ class PyQodeEditor(CodeEdit):
 
     # Start the backend as soon as possible
     def configure_backend(self):
-        self.backend.start('editor_backend.py')
+        self.backend.start('backend.py')
 
     def configure_aesthetics(self):
         self.setStyleSheet("background-color: #fcfcfc")
