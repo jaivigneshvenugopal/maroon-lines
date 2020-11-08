@@ -4,39 +4,54 @@ from PyQt5.QtGui import *
 
 
 class AlertDialog(QDialog):
-    def __init__(self, text):
+    """
+    A class to represent a Dialog box component that alerts users before a user action could be processed.
+
+    Attributes
+    ----------
+    window_title - Window title of the dialog box.
+    text_to_display - Text to display on dialog box.
+
+    """
+    def __init__(self, window_title, text_to_display):
         super().__init__()
 
         # Properties
-        self.label = QLabel()
-        self.layout = QGridLayout()
-        self.button_role = None
-        self.button_set = QDialogButtonBox(QDialogButtonBox.Yes | QDialogButtonBox.Cancel)
+        self.window_title = window_title
+        self.text_to_display = text_to_display
+
+        self.dialog_message = None
+        self.buttons_to_display = None
+        self.clicked_button = None
+        self.layout = None
 
         # Instantiate relevant components
-        self.configure_dialog_style(text)
-        self.configure_button_set()
+        self.configure_dialog_stylesheet()
+        self.configure_buttons_to_display()
         self.configure_message_label()
         self.configure_dialog_layout()
 
-    def configure_dialog_layout(self):
-        self.layout.addWidget(self.label, 0, 0, alignment=Qt.AlignCenter)
-        self.layout.addWidget(self.button_set, 5, 0, alignment=Qt.AlignRight)
-        self.setLayout(self.layout)
+    def exec_(self):
+        """Overloads super method and returns clicked button on the dialog box."""
+        super().exec_()
+        return self.clicked_button
 
-    def configure_message_label(self):
-        self.label.setText('Are you sure about clearing your file history?')
+    def configure_dialog_stylesheet(self):
+        self.setAutoFillBackground(True)
+        self.setWindowTitle(self.window_title)
+        self.setMinimumSize(400, 150)
 
-        font = self.label.font()
-        self.label.setFont(font)
+        # Setting modal blocks any other event till the dialog is closed.
+        self.setModal(True)
 
-        palette = self.label.palette()
-        palette.setColor(self.foregroundRole(), QColor(255, 255, 255))
-        self.label.setPalette(palette)
+        palette = self.palette()
+        palette.setColor(self.backgroundRole(), QColor(51, 51, 61))
+        self.setPalette(palette)
 
-    def configure_button_set(self):
-        self.button_set.clicked.connect(self.handle_button_action)
-        for button in self.button_set.buttons():
+    def configure_buttons_to_display(self):
+        self.buttons_to_display = QDialogButtonBox(QDialogButtonBox.Yes | QDialogButtonBox.Cancel)
+        self.buttons_to_display.clicked.connect(self.handle_button_clicked_action)
+        for button in self.buttons_to_display.buttons():
             button.setFont(QFont())
             button.setIcon(QIcon())
             button.setStyleSheet("""
@@ -64,23 +79,27 @@ class AlertDialog(QDialog):
 
         """)
 
-    def configure_dialog_style(self, text):
-        self.setAutoFillBackground(True)
-        self.setWindowTitle(text)
-        self.setModal(True)
-        self.setMinimumSize(400, 150)
+    def configure_message_label(self):
+        self.dialog_message = QLabel()
+        self.dialog_message.setText(self.text_to_display)
 
-        palette = self.palette()
-        palette.setColor(self.backgroundRole(), QColor(51, 51, 61))
-        self.setPalette(palette)
+        font = self.dialog_message.font()
+        self.dialog_message.setFont(font)
 
-    def handle_button_action(self, clicked_button):
-        if clicked_button == self.button_set.button(QDialogButtonBox.Yes):
-            self.button_role = QDialogButtonBox.Yes
-        elif clicked_button == self.button_set.button(QDialogButtonBox.Cancel):
-            self.button_role = QDialogButtonBox.Cancel
+        palette = self.dialog_message.palette()
+        palette.setColor(self.foregroundRole(), QColor(255, 255, 255))
+        self.dialog_message.setPalette(palette)
+
+    def configure_dialog_layout(self):
+        self.layout = QGridLayout()
+        self.layout.addWidget(self.dialog_message, 0, 0, alignment=Qt.AlignCenter)
+        self.layout.addWidget(self.buttons_to_display, 5, 0, alignment=Qt.AlignRight)
+        self.setLayout(self.layout)
+
+    def handle_button_clicked_action(self, clicked_button):
+        if clicked_button == self.buttons_to_display.button(QDialogButtonBox.Yes):
+            self.clicked_button = QDialogButtonBox.Yes
+        elif clicked_button == self.buttons_to_display.button(QDialogButtonBox.Cancel):
+            self.clicked_button = QDialogButtonBox.Cancel
+
         self.close()
-
-    def exec_(self):
-        super().exec_()
-        return self.button_role

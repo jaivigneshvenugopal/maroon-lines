@@ -314,7 +314,7 @@ class MaroonLines(QMainWindow):
         self.close()
 
     def handle_clear_history_action(self):
-        dialog = AlertDialog(self.file_path)
+        dialog = AlertDialog(self.file_path, text_to_display='Are you sure about clearing your file history?')
         clicked_button = dialog.exec_()
 
         if not clicked_button or clicked_button == QDialogButtonBox.Cancel:
