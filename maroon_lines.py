@@ -8,9 +8,8 @@ from editor import PyQodeEditor
 from repository_control_utils import *
 from timeline import Timeline
 from unsaved_content_dialog import UnsavedContentDialog
-from alert_dialog import AlertDialog
-from menu_bar import MenuBar
-from IPython import embed
+from components.alert_dialog import AlertDialog
+from components.menu_bar import MenuBar
 
 
 class MaroonLines(QMainWindow):
