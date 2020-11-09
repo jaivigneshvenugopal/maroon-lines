@@ -6,7 +6,7 @@ from PyQt5.QtCore import *
 
 from editor import PyQodeEditor
 from repository_control_utils import *
-from timeline import Timeline
+from components.timeline import Timeline
 from components.unsaved_content_dialog import UnsavedContentDialog
 from components.alert_dialog import AlertDialog
 from components.menu_bar import MenuBar
