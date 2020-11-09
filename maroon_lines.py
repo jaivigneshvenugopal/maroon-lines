@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 
-from editor import PyQodeEditor
+from components.editor import PyQodeEditor
 from utils.repository_control import *
 from components.timeline import Timeline
 from components.unsaved_content_dialog import UnsavedContentDialog
