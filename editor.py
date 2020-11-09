@@ -29,34 +29,47 @@ from pygments.lexers.haskell import HaskellLexer
 
 
 class LineNumberPanel(DefaultLineNumberPanel):
+    """
+    Inheriting from LineNumberPanel located in pyqode.
+
+    This class differs from its parent in the aspect of style and width of the panel.
+    """
+    BACKGROUND_COLOR = '#f0f0f0'
+
     def __init__(self):
         super().__init__()
-        self.setStyleSheet("background-color: #f0f0f0;")
+        self.setStyleSheet("background-color: {};".format(self.BACKGROUND_COLOR))
 
     def line_number_area_width(self):
         """
         Computes the lineNumber area width depending on the number of lines
         in the document
 
-        :return: Width
+        :return: width of line number area
         """
         digits = 2
         count = max(1, self.editor.blockCount())
         while count >= 100:
             count /= 10
             digits += 1
-        space = 5 + self.editor.fontMetrics().width("9") * digits
+        width = 5 + self.editor.fontMetrics().width("9") * digits
 
-        return space
+        return width
 
 
 class PyQodeEditor(CodeEdit):
 
     language = pyqtSignal(str)
-    syntax_highlighting = pyqtSignal()
 
     THEME = 'qt'
     DEFAULT_LANGUAGE = 'Text'
+    BACKGROUND_COLOR = '#fcfcfc'
+
+    FONT_NAME = 'Source Code Pro'
+    FONT_SIZE = 12
+
+    MIME = 'text/plain'
+    ENCODING = 'utf-8'
 
     def __init__(self):
         super().__init__()
@@ -87,6 +100,29 @@ class PyQodeEditor(CodeEdit):
         self.configure_actions_and_shortcuts()
         # self.file.open(__file__)
 
+    # Start the backend as soon as possible
+    def configure_backend(self):
+        self.backend.start('backend.py')
+
+    def configure_modes_and_panels(self):
+
+        # Modes
+        self.modes.append(modes.IndenterMode())
+        self.modes.append(modes.AutoIndentMode())
+        self.modes.append(modes.AutoCompleteMode())
+
+        # Panels
+        self.panels.append(LineNumberPanel(), api.Panel.Position.LEFT)
+        self.panels.append(panels.SearchAndReplacePanel(), api.Panel.Position.BOTTOM)
+
+    def configure_font(self):
+        self.font_name = self.FONT_NAME
+        self.font_size = self.FONT_SIZE
+
+    def configure_aesthetics(self):
+        self.setStyleSheet("background-color: {}".format(self.BACKGROUND_COLOR))
+        self.configure_scrollbar_aesthetics()
+
     def configure_actions_and_shortcuts(self):
         self.action_swap_line_up.setShortcut('Ctrl+Shift+Up')
         self.action_swap_line_down.setShortcut('Ctrl+Shift+Down')
@@ -103,61 +139,12 @@ class PyQodeEditor(CodeEdit):
         zoom_in.triggered.connect(self.zoom_out)
         self.add_action(zoom_in, sub_menu=None)
 
-    def configure_modes_and_panels(self):
-
-        # Modes
-        self.modes.append(modes.IndenterMode())
-        self.modes.append(modes.AutoIndentMode())
-        self.modes.append(modes.AutoCompleteMode())
-
-        # Panels
-        self.panels.append(LineNumberPanel(), api.Panel.Position.LEFT)
-        self.panels.append(panels.SearchAndReplacePanel(), api.Panel.Position.BOTTOM)
-
-    def configure_syntax_highlighting(self, extension=None):
-        if self.highlighter:
-            self.language.emit(self.DEFAULT_LANGUAGE)
-            self.modes.remove(modes.PygmentsSyntaxHighlighter)
-            self.highlighter = None
-
-        if extension in self.lexers:
-            lexer = self.lexers[extension]
-            self.language.emit(lexer().name)
-            self.syntax_highlighting.emit()
-            self.highlighter = modes.PygmentsSyntaxHighlighter(self.document(), lexer=lexer())
-            self.highlighter.pygments_style = self.THEME
-            self.modes.append(self.highlighter)
-
-    # Start the backend as soon as possible
-    def configure_backend(self):
-        self.backend.start('backend.py')
-
-    def configure_aesthetics(self):
-        self.setStyleSheet("background-color: #fcfcfc")
-        self.configure_scrollbar_aesthetics()
-
-    def configure_font(self):
-        self.font_name = 'Source Code Pro'
-        self.font_size = 12
-
-    def set_text(self, text):
-        self.setPlainText(text, 'text/plain', 'utf-8')
-
-    def clear_text(self):
-        self.setPlainText('', 'text/plain', 'utf-8')
-
-    def get_text(self):
-        return self.toPlainText()
-
-    def get_lines(self):
-        return max(1, self.blockCount())
-
     def configure_scrollbar_aesthetics(self):
         self.setCenterOnScroll(False)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
 
         scroll_bar = self.verticalScrollBar()
-        scroll_bar.rangeChanged.connect(self.ensure_cursor_is_visible)
+        scroll_bar.rangeChanged.connect(self.ensureCursorVisible)
         scroll_bar.setStyleSheet(
             """QScrollBar:vertical {
                     width: 12px;
@@ -208,13 +195,13 @@ class PyQodeEditor(CodeEdit):
                     margin: 0;
                     background: #fcfcfc;
                   }
-    
+
                   QScrollBar::handle:horizontal {
                     border: 12px solid #d9d9d9;
                     background: #33333d;
                     min-width: 10px;
                   }
-                  
+
                   QScrollBar::add-line:horizontal {
                     width: 0px;
                   }
@@ -230,7 +217,7 @@ class PyQodeEditor(CodeEdit):
                     background: none;
                     color: none;
                   }
-                  
+
                   QScrollBar::down-arrow:horizontal {
                     border: none;
                     height: 0px;
@@ -238,17 +225,39 @@ class PyQodeEditor(CodeEdit):
                     background: none;
                     color: none;
                   }
-                  
+
                   QScrollBar::add-page:horizontal {
                     width: 0px;
                   }
-                  
+
                   QScrollBar::sub-page:horizontal {
                     width: 0px;
                   }""")
 
-    def ensure_cursor_is_visible(self):
-        self.ensureCursorVisible()
+    def configure_syntax_highlighting(self, extension=None):
+        if self.highlighter:
+            self.language.emit(self.DEFAULT_LANGUAGE)
+            self.modes.remove(modes.PygmentsSyntaxHighlighter)
+            self.highlighter = None
+
+        if extension in self.lexers:
+            lexer = self.lexers[extension]
+            self.language.emit(lexer().name)
+            self.highlighter = modes.PygmentsSyntaxHighlighter(self.document(), lexer=lexer())
+            self.highlighter.pygments_style = self.THEME
+            self.modes.append(self.highlighter)
+
+    def set_text(self, text):
+        self.setPlainText(text, self.MIME, self.ENCODING)
+
+    def clear_text(self):
+        self.setPlainText('', self.MIME, self.ENCODING)
+
+    def get_text(self):
+        return self.toPlainText()
+
+    def get_lines(self):
+        return max(1, self.blockCount())
 
 
 if __name__ == "__main__":

@@ -32,7 +32,10 @@ class MaroonLines(QMainWindow):
 
         if self.editor:
             extension = value.split('.')[-1] if value else None
+
+            self.syntax_highlighting = True
             self.editor.configure_syntax_highlighting(extension)
+            self.syntax_highlighting = False
 
     @property
     def file_name(self):
@@ -331,13 +334,10 @@ class MaroonLines(QMainWindow):
     # Instantiate editor
     def configure_editor(self):
         self.editor.language.connect(self.update_status_bar_language)
-        self.editor.syntax_highlighting.connect(self.set_syntax_highlighting_flag)
         self.editor.textChanged.connect(self.update_relevant_components)
+        self.editor.modificationChanged.connect(self.display_graph_in_edit_mode)
         self.editor.installEventFilter(self)
         self.layout.addWidget(self.editor, 85)
-
-    def set_syntax_highlighting_flag(self):
-        self.syntax_highlighting = True
 
     # Slot Functions
     def update_relevant_components(self):
