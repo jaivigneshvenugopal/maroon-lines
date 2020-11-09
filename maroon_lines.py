@@ -5,7 +5,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 
 from editor import PyQodeEditor
-from repository_control_utils import *
+from utils.repository_control import *
 from components.timeline import Timeline
 from components.unsaved_content_dialog import UnsavedContentDialog
 from components.alert_dialog import AlertDialog
@@ -219,7 +219,7 @@ class MaroonLines(QMainWindow):
     # Refactored
     def configure_graph(self):
         self.graph.request_to_change_node.connect(self.handle_request_to_change_node)
-        self.graph.curr_node_changed.connect(self.load_repo_file)
+        self.graph.head_node_changed.connect(self.load_repo_file)
         self.graph.num_nodes_changed.connect(self.update_status_bar_num_nodes)
         self.layout.addWidget(self.graph, 15)
         self.graph.render_graph(index=None)
@@ -260,10 +260,10 @@ class MaroonLines(QMainWindow):
             return self.handle_save_as_action()
         else:
             file_hash = get_hash(self.editor.get_text())
-            if repo_object_exists(self.file_path, file_hash):
-                update_repo_index_curr_object(self.file_path, file_hash)
+            if repo_file_object_exists(self.file_path, file_hash):
+                update_repo_index_head(self.file_path, file_hash)
             else:
-                append_repo_object(self.file_path, file_data=self.editor.get_text(), parent_file_hash=self.file_hash)
+                append_file_object_to_index(self.file_path, file_data=self.editor.get_text(), parent_file_hash=self.file_hash)
                 self.store_file(self.file_path)
 
             self.file_hash = file_hash
@@ -282,7 +282,7 @@ class MaroonLines(QMainWindow):
             return self.handle_save_action()
 
         if self.file_path and self.file_path != file_path:
-            copy_repo(old_file_path=self.file_path, new_file_path=file_path)
+            move_repo(old_file_path=self.file_path, new_file_path=file_path)
 
         self.store_file(file_path)
         self.update_file_path_and_hash(file_path)
@@ -320,7 +320,7 @@ class MaroonLines(QMainWindow):
             return
 
         if self.index_curr_is_different_from_file_in_editor():
-            rebuilt_repo(self.file_path, repo_object(self.file_path, self.file_hash))
+            rebuilt_repo(self.file_path, repo_file_object(self.file_path, self.file_hash))
             self.graph.render_graph(self.add_unsaved_node())
             self.file_is_already_in_edit_mode = True
         else:
@@ -379,17 +379,17 @@ class MaroonLines(QMainWindow):
 
     def add_unsaved_node(self):
         index = repo_index(self.file_path)
-        curr = index['curr']
+        curr = index['head']
         index[curr].append('unsaved_node')
         index['unsaved_node'] = []
 
         return index
 
     def load_repo_file(self, file_hash):
-        update_repo_index_curr_object(self.file_path, file_hash)
+        update_repo_index_head(self.file_path, file_hash)
         self.file_hash = file_hash
         self.curr_node_changed = True
-        self.editor.set_text(repo_object(self.file_path, file_hash))
+        self.editor.set_text(repo_file_object(self.file_path, file_hash))
         self.store_file(self.file_path)
         if self.file_is_already_in_edit_mode:
             self.graph.render_graph(repo_index(self.file_path))
@@ -412,7 +412,7 @@ class MaroonLines(QMainWindow):
             self.file_hash = None
 
     def index_curr_is_different_from_file_in_editor(self):
-        return repo_index_curr_object(self.file_path) != get_hash(self.editor.get_text())
+        return repo_index_head(self.file_path) != get_hash(self.editor.get_text())
 
     def file_content_changed(self):
         return self.file_hash != get_hash(self.editor.get_text())
@@ -422,13 +422,13 @@ class MaroonLines(QMainWindow):
             init_repo(self.file_path, self.editor.get_text())
 
         if self.index_curr_is_different_from_file_in_editor():
-            if repo_object_exists(self.file_path, self.file_hash):
-                update_repo_index_curr_object(self.file_path, self.file_hash)
+            if repo_file_object_exists(self.file_path, self.file_hash):
+                update_repo_index_head(self.file_path, self.file_hash)
             else:
                 build_bridge(self.file_path, self.editor.get_text())
 
     def move_file(self, file_path):
-        copy_repo(old_file_path=self.file_path, new_file_path=file_path)
+        move_repo(old_file_path=self.file_path, new_file_path=file_path)
         self.remove_existing_copy_of_file_and_repo()
 
     def remove_existing_copy_of_file_and_repo(self):

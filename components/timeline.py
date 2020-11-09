@@ -17,17 +17,21 @@ class Timeline(QMainWindow):
 
     # Signals
     request_to_change_node = QtCore.pyqtSignal(str)
-    curr_node_changed = QtCore.pyqtSignal(str)
+    head_node_changed = QtCore.pyqtSignal(str)
     num_nodes_changed = QtCore.pyqtSignal(int)
 
     # Constants
     ROOT_NODE_COLOR = '#006400'
-    CURR_NODE_COLOR = '#d00000'
+    HEAD_NODE_COLOR = '#d00000'
     UNSAVED_NODE_COLOR = '#FF7F7F'
     DEFAULT_NODE_SIZE = 200
     DEFAULT_NODE_COLOR = '#25B0B0'
     FIGURE_BACKGROUND_COLOR = '#fff0f0'
     UNSAVED_NODE = 'unsaved_node'
+
+    INDEX_HEAD = 'head'
+    INDEX_ROOT = 'root'
+    INDEX_ADOPTS = 'adopts'
 
     def __init__(self):
         super(Timeline, self).__init__()
@@ -45,7 +49,7 @@ class Timeline(QMainWindow):
         self.pos_x = None
         self.pos_y = None
         self.root = None
-        self.curr = None
+        self.head = None
         self.adopts = None
         self.num_nodes = None
 
@@ -69,7 +73,7 @@ class Timeline(QMainWindow):
         self.pos_x = None
         self.pos_y = None
         self.root = None
-        self.curr = None
+        self.head = None
         self.adopts = None
         self.num_nodes = None
 
@@ -125,15 +129,15 @@ class Timeline(QMainWindow):
         # Marking stale as True informs the plot that it has to be redrawn, but I have no idea why I have to write it
         self.plot.stale = True
         self.canvas.draw_idle()
-        self.curr_node_changed.emit(self.curr)
+        self.head_node_changed.emit(self.head)
 
     def extract_critical_nodes(self):
-        self.root = self.index['root']
-        self.curr = self.index['curr']
-        self.adopts = self.index['adopts']
-        self.index.pop('root')
-        self.index.pop('curr')
-        self.index.pop('adopts')
+        self.root = self.index[self.INDEX_ROOT]
+        self.head = self.index[self.INDEX_HEAD]
+        self.adopts = self.index[self.INDEX_ADOPTS]
+        self.index.pop(self.INDEX_ROOT)
+        self.index.pop(self.INDEX_HEAD)
+        self.index.pop(self.INDEX_ADOPTS)
 
     def add_temp_node(self):
         self.graph.add_node(self.UNSAVED_NODE)
@@ -154,8 +158,8 @@ class Timeline(QMainWindow):
         for node, node_attrs in self.graph.nodes(data=True):
             if node == self.root:
                 node_attrs['color'] = self.ROOT_NODE_COLOR
-            elif node == self.curr:
-                node_attrs['color'] = self.CURR_NODE_COLOR
+            elif node == self.head:
+                node_attrs['color'] = self.HEAD_NODE_COLOR
             elif node == self.UNSAVED_NODE:
                 node_attrs['color'] = self.UNSAVED_NODE_COLOR
             else:
@@ -164,7 +168,7 @@ class Timeline(QMainWindow):
 
         for u, v, attrs in self.graph.edges.data():
             attrs['width'] = 1.5
-            if u == self.curr and v == self.UNSAVED_NODE:
+            if u == self.head and v == self.UNSAVED_NODE:
                 attrs['style'] = 'dotted'
 
         for edge in self.adopts:
@@ -192,7 +196,7 @@ class Timeline(QMainWindow):
         if event.mouseevent.button != MouseButton.LEFT:
             return
 
-        if hasattr(event, 'nodes') and event.nodes and event.nodes[0] != self.curr:
+        if hasattr(event, 'nodes') and event.nodes and event.nodes[0] != self.head:
             self.request_to_change_node.emit(event.nodes[0])
 
     def sequential_layout(self, graph):
@@ -256,29 +260,29 @@ class Timeline(QMainWindow):
         for child in children:
             self.pos_y[child] = self.pos_y[parent] + 1
 
-    def switch_node_colors(self, new_curr):
-        self.graph.nodes[new_curr]['color'] = self.CURR_NODE_COLOR
-        if self.curr == self.root:
-            self.graph.nodes[self.curr]['color'] = self.ROOT_NODE_COLOR
+    def switch_node_colors(self, new_head):
+        self.graph.nodes[new_head]['color'] = self.HEAD_NODE_COLOR
+        if self.head == self.root:
+            self.graph.nodes[self.head]['color'] = self.ROOT_NODE_COLOR
         else:
-            self.graph.nodes[self.curr]['color'] = self.DEFAULT_NODE_COLOR
-        self.curr = new_curr
+            self.graph.nodes[self.head]['color'] = self.DEFAULT_NODE_COLOR
+        self.head = new_head
         self.refresh_graph()
 
     def move_up(self):
-        curr_pos_x = self.pos_x[self.curr]
-        curr_pos_y = self.pos_y[self.curr]
+        curr_pos_x = self.pos_x[self.head]
+        curr_pos_y = self.pos_y[self.head]
         if curr_pos_y + 1 < len(self.graph_matrix[0]):
             node = self.graph_matrix[curr_pos_x][curr_pos_y + 1]
             if node:
                 self.switch_node_colors(node)
 
     def move_down(self):
-        if self.curr == self.root:
+        if self.head == self.root:
             return
 
-        curr_pos_x = self.pos_x[self.curr]
-        curr_pos_y = self.pos_y[self.curr]
+        curr_pos_x = self.pos_x[self.head]
+        curr_pos_y = self.pos_y[self.head]
         curr_pos_y -= 1
 
         node = self.graph_matrix[curr_pos_x][curr_pos_y]
@@ -289,8 +293,8 @@ class Timeline(QMainWindow):
         self.switch_node_colors(node)
 
     def move_right(self):
-        col = self.pos_x[self.curr]
-        row = self.pos_y[self.curr]
+        col = self.pos_x[self.head]
+        row = self.pos_y[self.head]
 
         node = None
         while col + 1 < len(self.graph_matrix) and not node:
@@ -301,8 +305,8 @@ class Timeline(QMainWindow):
             self.switch_node_colors(node)
 
     def move_left(self):
-        col = self.pos_x[self.curr]
-        row = self.pos_y[self.curr]
+        col = self.pos_x[self.head]
+        row = self.pos_y[self.head]
 
         node = None
         while col - 1 >= 0 and not node:
