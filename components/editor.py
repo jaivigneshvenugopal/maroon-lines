@@ -259,6 +259,20 @@ class PyQodeEditor(CodeEdit):
     def get_lines(self):
         return max(1, self.blockCount())
 
+    def clear_modified_flag(self):
+        self.document().setModified(False)
+
+    def set_modified_flag(self):
+        self.document().setModified(True)
+
+    def load_file(self, file_path):
+        with open(file_path, 'r') as f:
+            self.set_text(f.read())
+
+    def store_file(self, file_path):
+        with open(file_path, 'w') as f:
+            f.write(self.get_text())
+
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)

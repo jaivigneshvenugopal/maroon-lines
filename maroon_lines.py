@@ -4,8 +4,8 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 
-from components.editor import PyQodeEditor
 from utils.repository_control import *
+from components.editor import PyQodeEditor
 from components.timeline import Timeline
 from components.unsaved_content_dialog import UnsavedContentDialog
 from components.alert_dialog import AlertDialog
@@ -13,6 +13,14 @@ from components.menu_bar import MenuBar
 
 
 class MaroonLines(QMainWindow):
+    """
+    Class responsible for stitching up the various components together - Editor, Graph etc.
+
+    """
+
+    DEFAULT_FILE_NAME = 'untitled'
+    BACKGROUND_COLOR = '#33333d'
+
     @property
     def file_path(self):
         return self._file_path
@@ -24,26 +32,33 @@ class MaroonLines(QMainWindow):
         if self.status_bar:
             self.update_status_bar_file_path()
 
+        # Enable rename action only when there is a repo present.
         if self.rename_move_action:
             self.rename_move_action.setEnabled(value != None)
 
+        # Enable clear history action only when there is a repo present.
         if self.clear_history_action:
             self.clear_history_action.setEnabled(value != None)
 
+        # Configure syntax highlighting everytime file name changes.
         if self.editor:
-            extension = value.split('.')[-1] if value else None
+            extension = self.get_extension(value)
             self.editor.configure_syntax_highlighting(extension)
 
     @property
     def file_name(self):
-        return self.file_path or 'untitled'
+        """
+        Display name for file path.
+
+        """
+        return self.file_path or self.DEFAULT_FILE_NAME
 
     def __init__(self):
         super(QMainWindow, self).__init__()
 
         # Repo-related properties
         self.index = None
-        self.curr_node_changed = False
+        self.head_node_changed = False
 
         # Widget-related properties
         self.layout = QHBoxLayout()
@@ -81,15 +96,18 @@ class MaroonLines(QMainWindow):
         self.configure_graph()
         self.configure_and_show_frame()
 
-    # Event filter for Editor to ignore certain shortcuts pertaining to Graph
     def eventFilter(self, source, event):
+        """
+        Event filter for Editor to ignore certain shortcuts pertaining to Graph.
+
+        """
         if event.type() != QEvent.KeyPress or event.modifiers() != Qt.AltModifier:
             return False
 
         if not self.file_path or event.key() not in self.shortcut_arrow_functions:
             return False
 
-        if not self.content_is_saved(close_window=False):
+        if not self.content_is_saved():
             return False
 
         if event.isAutoRepeat():
@@ -101,24 +119,34 @@ class MaroonLines(QMainWindow):
         return True
 
     def closeEvent(self, event):
+        """
+        Ensure content is saved before window is closed.
+
+        """
         if not self.content_is_saved(close_window=True):
             event.ignore()
         else:
             event.accept()
 
-    # Define layout and set a central widget to QMainWindow
     def configure_layout_and_central_widget(self):
+        """
+        Define layout and set a central widget to QMainWindow.
+
+        """
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.central_widget.setStyleSheet("background-color: #f0b034")
         self.central_widget.setLayout(self.layout)
         self.setCentralWidget(self.central_widget)
 
-    # Refactored
     def configure_menu_bar(self):
         self.setMenuBar(self.menu_bar)
         self.configure_menu_bar_actions()
 
     def configure_menu_bar_actions(self):
+        """
+        Create all relevant actions necessary for a source code editor
+
+        """
         file_menu = self.menu_bar.addMenu('File')
         repo_menu = self.menu_bar.addMenu('Repo')
 
@@ -142,7 +170,7 @@ class MaroonLines(QMainWindow):
         exit_action.setShortcut("Ctrl+W")
         exit_action.triggered.connect(self.handle_exit_action)
 
-        # Development code - delete during production
+        # Development code - comment out during production
         insert_test_text = file_menu.addAction('Insert Random Text and Save File')
         insert_test_text.setShortcut("Ctrl+L")
         insert_test_text.triggered.connect(self.handle_insert_action)
@@ -156,18 +184,26 @@ class MaroonLines(QMainWindow):
         self.clear_history_action.triggered.connect(self.handle_clear_history_action)
         self.clear_history_action.setEnabled(False)
 
-    # Development code - delete during production
+    # Development code - comment out during production
     def handle_insert_action(self):
         self.editor.set_text(str(random()))
         self.handle_save_action()
 
-    # Refactored
     def configure_status_bar(self):
+        """
+        Display 4 crucial information through the use of status bar
+
+        1. Number of lines
+        2. Language used
+        3. File path of current file in session
+        4. Number of versions for current file in session
+
+        """
         self.setStatusBar(self.status_bar)
         self.status_bar.setStyleSheet("""
             QStatusBar {
-                background: rgb(51, 51, 61);
-                color: rgb(205,215,211);
+                background: #33333d;
+                color: #CDD7D3;
                 font: 17px;
             }
         """)
@@ -175,7 +211,7 @@ class MaroonLines(QMainWindow):
         self.status_bar_num_lines_label.setAlignment(Qt.AlignLeft)
         self.status_bar_num_lines_label.setStyleSheet("""
             QLabel {
-                color: rgb(205,215,211);
+                color: #CDD7D3;
                 padding-left: 2px;
             }
         """)
@@ -183,7 +219,7 @@ class MaroonLines(QMainWindow):
         self.status_bar_num_nodes_label.setAlignment(Qt.AlignRight)
         self.status_bar_num_nodes_label.setStyleSheet("""
             QLabel {
-                color: rgb(205,215,211);
+                color: #CDD7D3;
                 padding-right: 2px;
             }
         """)
@@ -191,15 +227,15 @@ class MaroonLines(QMainWindow):
         self.status_bar_file_path_label.setAlignment(Qt.AlignCenter)
         self.status_bar_file_path_label.setStyleSheet("""
             QLabel {
-                color: rgb(205,215,211);
+                color: #CDD7D3;
             }
         """)
 
-        self.status_bar_curr_language_label.setText('Text')
+        self.status_bar_curr_language_label.setText(self.editor.DEFAULT_LANGUAGE)
         self.status_bar_curr_language_label.setAlignment(Qt.AlignLeft)
         self.status_bar_curr_language_label.setStyleSheet("""
             QLabel {
-                color: rgb(205,215,211);
+                color: #CDD7D3;
                 padding-right: 2px;
             }
         """)
@@ -212,79 +248,112 @@ class MaroonLines(QMainWindow):
         self.update_status_bar_file_path()
         self.update_status_bar_num_lines()
 
-    # Refactored
     def configure_graph(self):
         self.graph.request_to_change_node.connect(self.handle_request_to_change_node)
-        self.graph.head_node_changed.connect(self.load_repo_file)
+        self.graph.head_node_changed.connect(self.load_repo_file_object)
         self.graph.num_nodes_changed.connect(self.update_status_bar_num_nodes)
-        self.layout.addWidget(self.graph, 15)
         self.graph.render_graph(index=None)
+        self.layout.addWidget(self.graph, 15)
 
-    # Define the geometry of the application and show it
     def configure_and_show_frame(self):
+        """
+        Define the geometry of the application and show it.
+
+        """
         self.setGeometry(500, 250, 1000, 500)
         self.setWindowTitle("Maroon Lines")
         self.showMaximized()
 
-    # Refactored
     def handle_new_action(self):
-        if not self.content_is_saved(close_window=False):
+        """
+        Clean editor, graph and all relevant components to start afresh.
+
+        """
+        if not self.content_is_saved():
             return
 
-        self.update_file_path_and_hash(file_path=None)
         self.editor.clear_text()
-        self.editor.document().setModified(False)
+        self.editor.clear_modified_flag()
+
+        self.update_file_path_and_hash()
+
         self.graph.render_graph(index=None)
 
-    # Refactored
     def handle_open_action(self):
-        if not self.content_is_saved(close_window=False):
+        """
+        Load a new file and kickstart relevant component changes.
+
+        """
+        if not self.content_is_saved():
             return
 
         file_info = QFileDialog.getOpenFileName(self, 'Open File')
         file_path, file_type = str(file_info[0]), file_info[1]
-        if file_path:
-            self.load_file(file_path)
-            self.update_file_path_and_hash(file_path)
-            self.update_index()
-            self.editor.document().setModified(False)
-            self.graph.render_graph(repo_index(self.file_path))
 
-    # Refactored
+        if not file_path:
+            return
+
+        self.editor.load_file(file_path)
+        self.editor.clear_modified_flag()
+
+        self.update_file_path_and_hash(file_path)
+        self.update_index()
+
+        self.graph.render_graph(repo_index(self.file_path))
+
     def handle_save_action(self):
+        """
+        Save file in session and update repo.
+
+        :return: Boolean representing result of handling the action
+
+        """
         if not self.file_path:
             return self.handle_save_as_action()
+
+        self.editor.store_file(self.file_path)
+        self.editor.clear_modified_flag()
+
+        file_data = self.editor.get_text()
+        self.file_hash = get_hash(file_data)
+
+        if repo_file_object_exists(self.file_path, self.file_hash):
+            update_repo_index_head(self.file_path, self.file_hash)
         else:
-            file_hash = get_hash(self.editor.get_text())
-            if repo_file_object_exists(self.file_path, file_hash):
-                update_repo_index_head(self.file_path, file_hash)
-            else:
-                append_file_object_to_index(self.file_path, file_data=self.editor.get_text(), parent_file_hash=self.file_hash)
-                self.store_file(self.file_path)
+            add_file_object_to_index(self.file_path, file_data)
 
-            self.file_hash = file_hash
-            self.editor.document().setModified(False)
-            self.graph.render_graph(repo_index(self.file_path))
-            return True
+        self.graph.render_graph(repo_index(self.file_path))
 
-    # Refactored
+        return True
+
     def handle_save_as_action(self):
+        """
+        Save file in session and create new repo.
+
+        :return: Boolean representing result of handling the action
+        """
         file_info = QFileDialog.getSaveFileName(self, 'Save As...')
         file_path, file_type = str(file_info[0]), file_info[1]
+
         if not file_path:
             return False
 
+        # if save_as function is actually a save function in disguise
         if self.file_path and self.file_path == file_path:
             return self.handle_save_action()
 
+        # if there is an intent to create a copy of the file and its history
         if self.file_path and self.file_path != file_path:
-            move_repo(old_file_path=self.file_path, new_file_path=file_path)
+            copy_repo(old_file_path=self.file_path, new_file_path=file_path)
 
-        self.store_file(file_path)
+        self.editor.store_file(file_path)
+        self.editor.clear_modified_flag()
+
         self.update_file_path_and_hash(file_path)
         self.update_index()
-        self.editor.document().setModified(False)
+
         self.graph.render_graph(repo_index(self.file_path))
+
         return True
 
     def handle_rename_move_action(self):
@@ -297,14 +366,13 @@ class MaroonLines(QMainWindow):
         if not file_path or self.file_path == file_path:
             return
 
-        self.store_file(file_path)
+        self.editor.store_file(file_path)
         self.move_file(file_path)
         self.update_file_path_and_hash(file_path)
         self.update_index()
         self.editor.document().setModified(False)
         self.graph.render_graph(repo_index(self.file_path))
 
-    # Refactored
     def handle_exit_action(self):
         self.close()
 
@@ -338,7 +406,7 @@ class MaroonLines(QMainWindow):
         self.display_graph_in_edit_mode()
 
     def update_status_bar_num_lines(self):
-        self.status_bar_num_lines_label.setText('Lines: {}'.format(self.editor.get_lines())) 
+        self.status_bar_num_lines_label.setText('Lines: {}'.format(self.editor.get_lines()))
 
     def update_status_bar_num_nodes(self, num_nodes):
         self.status_bar_num_nodes_label.setText('Versions: {}'.format(num_nodes))
@@ -350,7 +418,7 @@ class MaroonLines(QMainWindow):
         self.status_bar_curr_language_label.setText(language)
 
     def handle_request_to_change_node(self, node):
-        if not self.content_is_saved(close_window=False):
+        if not self.content_is_saved():
             return
 
         self.graph.switch_node_colors(node)
@@ -362,8 +430,8 @@ class MaroonLines(QMainWindow):
         if not self.file_path or not self.file_hash:
             return
 
-        if self.curr_node_changed:
-            self.curr_node_changed = False
+        if self.head_node_changed:
+            self.head_node_changed = False
             return
 
         self.editor.document().setModified(True)
@@ -377,27 +445,19 @@ class MaroonLines(QMainWindow):
 
         return index
 
-    def load_repo_file(self, file_hash):
+    def load_repo_file_object(self, file_hash):
         update_repo_index_head(self.file_path, file_hash)
         self.file_hash = file_hash
-        self.curr_node_changed = True
+        self.head_node_changed = True
         self.editor.set_text(repo_file_object(self.file_path, file_hash))
-        self.store_file(self.file_path)
+        self.editor.store_file(self.file_path)
 
         if self.editor.document().isModified():
             self.graph.render_graph(repo_index(self.file_path))
             self.editor.document().setModified(False)
 
     # Helper functions
-    def load_file(self, file_path):
-        with open(file_path, 'r') as f:
-            self.editor.set_text(f.read())
-
-    def store_file(self, file_path):
-        with open(file_path, 'w') as f:
-            f.write(self.editor.get_text())
-
-    def update_file_path_and_hash(self, file_path):
+    def update_file_path_and_hash(self, file_path=None):
         self.file_path = file_path
         if self.file_path:
             self.file_hash = get_hash(self.editor.get_text())
@@ -418,10 +478,10 @@ class MaroonLines(QMainWindow):
             if repo_file_object_exists(self.file_path, self.file_hash):
                 update_repo_index_head(self.file_path, self.file_hash)
             else:
-                build_bridge(self.file_path, self.editor.get_text())
+                add_file_object_to_index(self.file_path, self.editor.get_text(), adopted=True)
 
     def move_file(self, file_path):
-        move_repo(old_file_path=self.file_path, new_file_path=file_path)
+        copy_repo(old_file_path=self.file_path, new_file_path=file_path)
         self.remove_existing_copy_of_file_and_repo()
 
     def remove_existing_copy_of_file_and_repo(self):
@@ -434,7 +494,7 @@ class MaroonLines(QMainWindow):
         else:
             raise Exception('File does not exist to move/rename')
 
-    def content_is_saved(self, close_window):
+    def content_is_saved(self, close_window=False):
         if (not self.file_path and not self.editor.get_text()) or \
                 (self.file_path and self.file_hash == get_hash(self.editor.get_text())):
             return True
@@ -450,6 +510,18 @@ class MaroonLines(QMainWindow):
             return self.handle_save_action()
         elif clicked_button == QDialogButtonBox.Ignore or clicked_button == QDialogButtonBox.Close:
             return True
+
+    @staticmethod
+    def get_extension(value):
+        """
+        :param value: file_path
+        :return: extension of file_path
+        """
+        if value:
+            _, ext = os.path.splitext(value)
+            return ext
+        else:
+            return None
 
 
 if __name__ == '__main__':

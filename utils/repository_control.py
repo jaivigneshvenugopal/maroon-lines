@@ -37,9 +37,9 @@ def init_repo(file_path, file_data):
     write_repo_index(file_path, build_index_dict(file_data))
 
 
-def move_repo(old_file_path, new_file_path):
+def copy_repo(old_file_path, new_file_path):
     """
-    Move a repo - not copy - from one location to another.
+    Copy a repo from one location to another.
 
     :param old_file_path: full file location (inclusive of name and extension)
     :param new_file_path: full file location (inclusive of name and extension)
@@ -58,6 +58,18 @@ def move_repo(old_file_path, new_file_path):
 
     # Update repo key in the new location
     write_repo_key(new_file_path)
+
+
+def move_repo(old_file_path, new_file_path):
+    """
+    Move a repo from one location to another.
+
+    :param old_file_path: full file location (inclusive of name and extension)
+    :param new_file_path: full file location (inclusive of name and extension)
+    :return: None
+    """
+    copy_repo(old_file_path, new_file_path)
+    remove_repo(old_file_path)
 
 
 def remove_repo(file_path):
@@ -228,18 +240,6 @@ def build_index_dict(file_data):
     return index
 
 
-def build_bridge(file_path, file_data):
-    """
-    Build a connection between foreign file content and existing repo history.
-
-    :param file_path: full file location (inclusive of name and extension)
-    :param file_data: file content
-    :return: None
-    """
-    parent_file_hash = repo_index_head(file_path)
-    append_file_object_to_index(file_path, file_data, parent_file_hash, adopted=True)
-
-
 def repo_file_object(file_path, file_hash):
     """
     Decompress file object and return file content.
@@ -291,18 +291,19 @@ def write_repo_file_object(file_path, file_data):
         f.write(binary_file_data)
 
 
-def append_file_object_to_index(file_path, file_data, parent_file_hash, adopted=False):
+def add_file_object_to_index(file_path, file_data, adopted=False):
     """
     Add a new file object to index.
 
     :param file_path: full file location (inclusive of name and extension)
     :param file_data: file content
-    :param parent_file_hash: hash of parent file object
     :param adopted: Boolean representing if the relationship is not natural
     :return: None
     """
     index = repo_index(file_path)
     file_hash = get_hash(file_data)
+    parent_file_hash = index[INDEX_HEAD]
+
     index[parent_file_hash].append(file_hash)
     index[INDEX_HEAD] = file_hash
 
