@@ -357,7 +357,11 @@ class MaroonLines(QMainWindow):
         return True
 
     def handle_rename_move_action(self):
-        if not self.file_path:
+        """
+        Move a file and its history to another location.
+
+        """
+        if not self.content_is_saved():
             return
 
         file_info = QFileDialog.getSaveFileName(self, 'Move/Rename')
@@ -366,11 +370,15 @@ class MaroonLines(QMainWindow):
         if not file_path or self.file_path == file_path:
             return
 
+        self.editor.remove_file(self.file_path)
         self.editor.store_file(file_path)
-        self.move_file(file_path)
+        self.editor.clear_modified_flag()
+
+        move_repo(old_file_path=self.file_path, new_file_path=file_path)
+
         self.update_file_path_and_hash(file_path)
         self.update_index()
-        self.editor.document().setModified(False)
+
         self.graph.render_graph(repo_index(self.file_path))
 
     def handle_exit_action(self):
@@ -481,18 +489,8 @@ class MaroonLines(QMainWindow):
                 add_file_object_to_index(self.file_path, self.editor.get_text(), adopted=True)
 
     def move_file(self, file_path):
-        copy_repo(old_file_path=self.file_path, new_file_path=file_path)
-        self.remove_existing_copy_of_file_and_repo()
-
-    def remove_existing_copy_of_file_and_repo(self):
+        move_repo(old_file_path=self.file_path, new_file_path=file_path)
         self.remove_file(self.file_path)
-        remove_repo(self.file_path)
-
-    def remove_file(self, file_path):
-        if os.path.exists(file_path):
-            os.remove(file_path)
-        else:
-            raise Exception('File does not exist to move/rename')
 
     def content_is_saved(self, close_window=False):
         if (not self.file_path and not self.editor.get_text()) or \

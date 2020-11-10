@@ -1,4 +1,5 @@
 import sys
+import os
 # Here, you might want to set the ``QT_API`` to use.
 # Valid values are: 'pyqt5', 'pyqt4' or 'pyside'
 # See
@@ -272,6 +273,13 @@ class PyQodeEditor(CodeEdit):
     def store_file(self, file_path):
         with open(file_path, 'w') as f:
             f.write(self.get_text())
+
+    @staticmethod
+    def remove_file(file_path):
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        else:
+            raise Exception('File does not exist to move/rename')
 
 
 if __name__ == "__main__":
