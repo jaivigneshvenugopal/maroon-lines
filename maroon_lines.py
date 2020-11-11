@@ -26,7 +26,6 @@ class MaroonLines(QMainWindow):
 
     @file_path.setter
     def file_path(self, value):
-        print('gettign into setter')
         self._file_path = value
 
         if self.status_bar:
@@ -43,7 +42,6 @@ class MaroonLines(QMainWindow):
         # Configure syntax highlighting everytime file name changes.
         if self.editor:
             extension = self.get_extension(value)
-            print(extension)
             self.editor.configure_syntax_highlighting(extension)
 
     @property
@@ -358,7 +356,7 @@ class MaroonLines(QMainWindow):
 
         self.editor.store_file(file_path)
         self.editor.clear_modified_flag()
-        print('hello')
+
         # if there is an intent to create a copy of the file and its history
         if self.file_path and self.file_path != file_path:
             copy_repo(old_file_path=self.file_path, new_file_path=file_path)
@@ -532,14 +530,16 @@ class MaroonLines(QMainWindow):
     # Slot Function
     def load_repo_file_object(self, file_hash):
         self.file_hash = file_hash
+        self.head_node_changed = True
         self.editor.set_text(repo_file_object(self.file_path, file_hash))
         self.editor.store_file(self.file_path)
 
-        self.head_node_changed = True
         update_repo_index_head(self.file_path, file_hash)
 
         # This is to clear away the node with the dotted edge - which is displayed when file is in edit mode
+        print('ps')
         if self.file_in_edit_mode():
+            print('file in edit mode')
             self.editor.clear_modified_flag()
             self.render_timeline()
 
