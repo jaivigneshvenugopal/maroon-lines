@@ -290,7 +290,6 @@ class MaroonLines(QMainWindow):
         self.editor.clear_modified_flag()
 
         self.update_file_path_and_hash()
-
         self.render_timeline()
 
     def handle_open_action(self):
@@ -310,9 +309,9 @@ class MaroonLines(QMainWindow):
         self.editor.load_file(file_path)
         self.editor.clear_modified_flag()
 
-        self.update_file_path_and_hash(file_path)
-        self.update_index()
+        self.load_index(file_path)
 
+        self.update_file_path_and_hash(file_path)
         self.render_timeline()
 
     def handle_save_action(self):
@@ -356,16 +355,24 @@ class MaroonLines(QMainWindow):
         if self.file_path and self.file_path == file_path:
             return self.handle_save_action()
 
-        # if there is an intent to create a copy of the file and its history
-        if self.file_path and self.file_path != file_path:
-            copy_repo(old_file_path=self.file_path, new_file_path=file_path)
-
         self.editor.store_file(file_path)
         self.editor.clear_modified_flag()
 
-        self.update_file_path_and_hash(file_path)
-        self.update_index()
+        # if there is an intent to create a copy of the file and its history
+        if self.file_path and self.file_path != file_path:
+            copy_repo(old_file_path=self.file_path, new_file_path=file_path)
+            if self.index_head_differs_from_live_text():
+                # Check if newly saved content is pre-existing in repo history.
+                if repo_file_object_exists(self.file_path, self.file_hash):
+                    update_repo_index_head(self.file_path, self.file_hash)
+                else:
+                    add_file_object_to_index(self.file_path, self.editor.get_text(), adopted=True)
 
+        # brand new file - maiden save
+        if not self.file_path:
+            self.create_index(file_path)
+
+        self.update_file_path_and_hash(file_path)
         self.render_timeline()
 
         return True
@@ -391,8 +398,6 @@ class MaroonLines(QMainWindow):
         move_repo(old_file_path=self.file_path, new_file_path=file_path)
 
         self.update_file_path_and_hash(file_path)
-        self.update_index()
-
         self.render_timeline()
 
     def handle_exit_action(self):
@@ -411,7 +416,7 @@ class MaroonLines(QMainWindow):
 
         # There will be a case where uses wishes to clear history while the current text is not saved.
         # This accounts for that case - ensuring current text is not saved but its history is cleared.
-        if self.index_head_differs_from_current_text():
+        if self.index_head_differs_from_live_text():
             file_data = repo_file_object(self.file_path, self.file_hash)
             rebuilt_repo(self.file_path, file_data)
             self.editor.set_modified_flag()
@@ -422,77 +427,31 @@ class MaroonLines(QMainWindow):
             self.editor.clear_modified_flag()
             self.render_timeline()
 
-    # Slot Functions
-    def update_status_bar_num_lines(self):
-        self.status_bar_num_lines_label.setText('Lines: {}'.format(self.editor.get_lines()))
+    def render_timeline(self, edit_mode=False):
+        """
+        Draw network.
 
-    def update_status_bar_num_nodes(self, num_nodes):
-        self.status_bar_num_nodes_label.setText('Versions: {}'.format(num_nodes))
-
-    def update_status_bar_file_path(self):
-        self.status_bar_file_path_label.setText(self.file_name)
-
-    def update_status_bar_language(self, language):
-        self.status_bar_curr_language_label.setText(language)
-
-    def handle_request_to_change_node(self, node):
-        if not self.content_is_saved():
-            return
-
-        self.timeline.switch_node_colors(node)
-
-    def display_graph_in_edit_mode(self, changed):
-        if not changed:
-            return
-
-        if not self.file_path or not self.file_hash:
-            return
-
-        if self.head_node_changed:
-            self.head_node_changed = False
-            return
-
-        self.editor.document().setModified(True)
-        self.render_timeline(edit_mode=True)
-
-    def load_repo_file_object(self, file_hash):
-        update_repo_index_head(self.file_path, file_hash)
-        self.file_hash = file_hash
-        self.head_node_changed = True
-        self.editor.set_text(repo_file_object(self.file_path, file_hash))
-        self.editor.store_file(self.file_path)
-
-        if self.editor.document().isModified():
-            self.render_timeline()
-            self.editor.document().setModified(False)
-
-    # Helper functions
-    def update_file_path_and_hash(self, file_path=None):
-        self.file_path = file_path
+        """
         if self.file_path:
-            self.file_hash = get_hash(self.editor.get_text())
+            index = repo_index(self.file_path)
         else:
-            self.file_hash = None
+            index = None
 
-    def index_head_differs_from_current_text(self):
-        return repo_index_head(self.file_path) != get_hash(self.editor.get_text())
+        if index and edit_mode:
+            head = index[INDEX_HEAD]
+            index[head].append(self.timeline.UNSAVED_NODE)
+            index[self.timeline.UNSAVED_NODE] = []
 
-    def file_content_changed(self):
-        return self.file_hash != get_hash(self.editor.get_text())
-
-    def update_index(self):
-        if not repo_exists(self.file_path):
-            init_repo(self.file_path, self.editor.get_text())
-
-        if self.index_head_differs_from_current_text():
-            if repo_file_object_exists(self.file_path, self.file_hash):
-                update_repo_index_head(self.file_path, self.file_hash)
-            else:
-                add_file_object_to_index(self.file_path, self.editor.get_text(), adopted=True)
+        self.timeline.render_graph(index)
 
     def content_is_saved(self, close_window=False):
-        if (not self.file_path and not self.editor.get_text()) or \
-                (self.file_path and self.file_hash == get_hash(self.editor.get_text())):
+        """
+        Opens up a dialog to ask if content needs to be saved.
+
+        :param close_window: if app is to be closed
+
+        """
+        if self.file_is_virgin() or self.file_content_did_not_change():
             return True
 
         dialog = UnsavedContentDialog(self.file_name,
@@ -507,19 +466,107 @@ class MaroonLines(QMainWindow):
         elif clicked_button == QDialogButtonBox.Ignore or clicked_button == QDialogButtonBox.Close:
             return True
 
-    def render_timeline(self, edit_mode=False):
+    def create_index(self, file_path):
+        if repo_exists(file_path):
+            remove_repo(file_path)
+
+        init_repo(file_path, self.editor.get_text())
+
+    def load_index(self, file_path):
+        file_data = self.editor.get_text()
+        if not repo_exists(file_path):
+            init_repo(file_path, file_data)
+            return
+
+        if self.index_head_differs_from_live_text():
+            # Check if content is pre-existing in repo history.
+            if repo_file_object_exists(file_path, file_data):
+                update_repo_index_head(file_path, file_data)
+            else:
+                # This means file was somehow edited by 3rd party, which forces the current history to adopt it.
+                add_file_object_to_index(file_path, file_data, adopted=True)
+
+    # Slot Function
+    def update_status_bar_num_lines(self):
+        self.status_bar_num_lines_label.setText('Lines: {}'.format(self.editor.get_lines()))
+
+    # Slot Function
+    def update_status_bar_num_nodes(self, num_nodes):
+        self.status_bar_num_nodes_label.setText('Versions: {}'.format(num_nodes))
+
+    # Slot Function
+    def update_status_bar_file_path(self):
+        self.status_bar_file_path_label.setText(self.file_name)
+
+    # Slot Function
+    def update_status_bar_language(self, language):
+        self.status_bar_curr_language_label.setText(language)
+
+    # Slot Function
+    def handle_request_to_change_node(self, node_to_change_to):
+        if not self.content_is_saved():
+            return
+
+        self.timeline.switch_node_colors(node_to_change_to)
+
+    # Slot Function
+    def display_graph_in_edit_mode(self, file_modified):
+        """
+        Display a unorthodox node with a dotted edge to its parent, to demonstrate the unsaved nature of a file.
+
+        """
+        if not file_modified:
+            return
+
+        if not self.file_path or not self.file_hash:
+            return
+
+        if self.head_node_changed:
+            self.head_node_changed = False
+            return
+
+        self.editor.set_modified_flag()
+        self.render_timeline(edit_mode=True)
+
+    # Slot Function
+    def load_repo_file_object(self, file_hash):
+        self.file_hash = file_hash
+        self.editor.set_text(repo_file_object(self.file_path, file_hash))
+        self.editor.store_file(self.file_path)
+
+        self.head_node_changed = True
+        update_repo_index_head(self.file_path, file_hash)
+
+        # This is to clear away the node with the dotted edge - which is displayed when file is in edit mode
+        if self.file_in_edit_mode():
+            self.editor.clear_modified_flag()
+            self.render_timeline()
+
+    # Helper function
+    def update_file_path_and_hash(self, file_path=None):
+        self.file_path = file_path
         if self.file_path:
-            index = repo_index(self.file_path)
+            self.file_hash = get_hash(self.editor.get_text())
         else:
-            index = None
+            self.file_hash = None
 
-        if index and edit_mode:
-            head = index[INDEX_HEAD]
-            index[head].append(self.timeline.UNSAVED_NODE)
-            index[self.timeline.UNSAVED_NODE] = []
+    # Helper function
+    def index_head_differs_from_live_text(self):
+        return repo_index_head(self.file_path) != get_hash(self.editor.get_text())
 
-        self.timeline.render_graph(index)
+    # Helper function
+    def file_content_did_not_change(self):
+        return self.file_path and not self.index_head_differs_from_live_text()
 
+    # Helper function
+    def file_is_virgin(self):
+        return not self.file_path and not self.editor.get_text()
+
+    # Helper function
+    def file_in_edit_mode(self):
+        return self.editor.document().isModified()
+
+    # Helper function
     @staticmethod
     def get_extension(value):
         """
