@@ -65,7 +65,7 @@ class MaroonLines(QMainWindow):
         self.central_widget = QWidget()
         self.menu_bar = MenuBar()
         self.editor = PyQodeEditor()
-        self.graph = Timeline()
+        self.timeline = Timeline()
         self.status_bar = QStatusBar()
         self.status_bar_num_lines_label = QLabel()
         self.status_bar_num_nodes_label = QLabel()
@@ -82,10 +82,10 @@ class MaroonLines(QMainWindow):
 
         # Shortcuts and corresponding functions
         self.shortcut_arrow_functions = {
-            Qt.Key_Up: self.graph.move_up,
-            Qt.Key_Down: self.graph.move_down,
-            Qt.Key_Right: self.graph.move_right,
-            Qt.Key_Left: self.graph.move_left
+            Qt.Key_Up: self.timeline.move_up,
+            Qt.Key_Down: self.timeline.move_down,
+            Qt.Key_Right: self.timeline.move_right,
+            Qt.Key_Left: self.timeline.move_left
         }
 
         # Instantiate relevant components
@@ -93,7 +93,7 @@ class MaroonLines(QMainWindow):
         self.configure_menu_bar()
         self.configure_status_bar()
         self.configure_editor()
-        self.configure_graph()
+        self.configure_timeline()
         self.configure_and_show_frame()
 
     def eventFilter(self, source, event):
@@ -208,6 +208,7 @@ class MaroonLines(QMainWindow):
             }
         """)
 
+        self.status_bar_num_lines_label.setText('Lines: 1')
         self.status_bar_num_lines_label.setAlignment(Qt.AlignLeft)
         self.status_bar_num_lines_label.setStyleSheet("""
             QLabel {
@@ -216,6 +217,7 @@ class MaroonLines(QMainWindow):
             }
         """)
 
+        self.status_bar_num_nodes_label.setText('Versions: 1')
         self.status_bar_num_nodes_label.setAlignment(Qt.AlignRight)
         self.status_bar_num_nodes_label.setStyleSheet("""
             QLabel {
@@ -224,6 +226,7 @@ class MaroonLines(QMainWindow):
             }
         """)
 
+        self.status_bar_file_path_label.setText(self.file_name)
         self.status_bar_file_path_label.setAlignment(Qt.AlignCenter)
         self.status_bar_file_path_label.setStyleSheet("""
             QLabel {
@@ -245,15 +248,26 @@ class MaroonLines(QMainWindow):
         self.status_bar.addPermanentWidget(self.status_bar_file_path_label, 120)
         self.status_bar.addPermanentWidget(self.status_bar_num_nodes_label, 40)
 
-        self.update_status_bar_file_path()
-        self.update_status_bar_num_lines()
+    def configure_editor(self):
+        """
+        Monitor 3 crucial information
+        1. Language used
+        2. Text Changes
+        3. File modified signal after it was saved/opened/moved etc
 
-    def configure_graph(self):
-        self.graph.request_to_change_node.connect(self.handle_request_to_change_node)
-        self.graph.head_node_changed.connect(self.load_repo_file_object)
-        self.graph.num_nodes_changed.connect(self.update_status_bar_num_nodes)
-        self.graph.render_graph(index=None)
-        self.layout.addWidget(self.graph, 15)
+        """
+        self.editor.language.connect(self.update_status_bar_language)
+        self.editor.textChanged.connect(self.update_status_bar_num_lines)
+        self.editor.modificationChanged.connect(self.display_graph_in_edit_mode)
+        self.editor.installEventFilter(self)
+        self.layout.addWidget(self.editor, 85)
+
+    def configure_timeline(self):
+        self.timeline.request_to_change_node.connect(self.handle_request_to_change_node)
+        self.timeline.head_node_changed.connect(self.load_repo_file_object)
+        self.timeline.num_nodes_changed.connect(self.update_status_bar_num_nodes)
+        self.render_timeline()
+        self.layout.addWidget(self.timeline, 15)
 
     def configure_and_show_frame(self):
         """
@@ -277,7 +291,7 @@ class MaroonLines(QMainWindow):
 
         self.update_file_path_and_hash()
 
-        self.graph.render_graph(index=None)
+        self.render_timeline()
 
     def handle_open_action(self):
         """
@@ -299,7 +313,7 @@ class MaroonLines(QMainWindow):
         self.update_file_path_and_hash(file_path)
         self.update_index()
 
-        self.graph.render_graph(repo_index(self.file_path))
+        self.render_timeline()
 
     def handle_save_action(self):
         """
@@ -322,7 +336,7 @@ class MaroonLines(QMainWindow):
         else:
             add_file_object_to_index(self.file_path, file_data)
 
-        self.graph.render_graph(repo_index(self.file_path))
+        self.render_timeline()
 
         return True
 
@@ -352,7 +366,7 @@ class MaroonLines(QMainWindow):
         self.update_file_path_and_hash(file_path)
         self.update_index()
 
-        self.graph.render_graph(repo_index(self.file_path))
+        self.render_timeline()
 
         return True
 
@@ -379,40 +393,36 @@ class MaroonLines(QMainWindow):
         self.update_file_path_and_hash(file_path)
         self.update_index()
 
-        self.graph.render_graph(repo_index(self.file_path))
+        self.render_timeline()
 
     def handle_exit_action(self):
         self.close()
 
     def handle_clear_history_action(self):
+        """
+        Remove history of a particular file and re-create a new one.
+
+        """
         dialog = AlertDialog(self.file_path, text_to_display='Are you sure about clearing your file history?')
         clicked_button = dialog.exec_()
 
         if not clicked_button or clicked_button == QDialogButtonBox.Cancel:
             return
 
-        if self.index_curr_is_different_from_file_in_editor():
-            rebuilt_repo(self.file_path, repo_file_object(self.file_path, self.file_hash))
-            self.graph.render_graph(self.add_unsaved_node())
-            self.editor.document().setModified(True)
+        # There will be a case where uses wishes to clear history while the current text is not saved.
+        # This accounts for that case - ensuring current text is not saved but its history is cleared.
+        if self.index_head_differs_from_current_text():
+            file_data = repo_file_object(self.file_path, self.file_hash)
+            rebuilt_repo(self.file_path, file_data)
+            self.editor.set_modified_flag()
+            self.render_timeline(edit_mode=True)
         else:
-            rebuilt_repo(self.file_path, self.editor.get_text())
-            self.graph.render_graph(repo_index(self.file_path))
-            self.editor.document().setModified(False)
-
-    # Instantiate editor
-    def configure_editor(self):
-        self.editor.language.connect(self.update_status_bar_language)
-        self.editor.textChanged.connect(self.update_status_bar_num_lines)
-        self.editor.modificationChanged.connect(self.display_graph_in_edit_mode)
-        self.editor.installEventFilter(self)
-        self.layout.addWidget(self.editor, 85)
+            file_data = self.editor.get_text()
+            rebuilt_repo(self.file_path, file_data)
+            self.editor.clear_modified_flag()
+            self.render_timeline()
 
     # Slot Functions
-    def update_relevant_components(self):
-        self.update_status_bar_num_lines()
-        self.display_graph_in_edit_mode()
-
     def update_status_bar_num_lines(self):
         self.status_bar_num_lines_label.setText('Lines: {}'.format(self.editor.get_lines()))
 
@@ -429,7 +439,7 @@ class MaroonLines(QMainWindow):
         if not self.content_is_saved():
             return
 
-        self.graph.switch_node_colors(node)
+        self.timeline.switch_node_colors(node)
 
     def display_graph_in_edit_mode(self, changed):
         if not changed:
@@ -443,15 +453,7 @@ class MaroonLines(QMainWindow):
             return
 
         self.editor.document().setModified(True)
-        self.graph.render_graph(self.add_unsaved_node())
-
-    def add_unsaved_node(self):
-        index = repo_index(self.file_path)
-        curr = index['head']
-        index[curr].append('unsaved_node')
-        index['unsaved_node'] = []
-
-        return index
+        self.render_timeline(edit_mode=True)
 
     def load_repo_file_object(self, file_hash):
         update_repo_index_head(self.file_path, file_hash)
@@ -461,7 +463,7 @@ class MaroonLines(QMainWindow):
         self.editor.store_file(self.file_path)
 
         if self.editor.document().isModified():
-            self.graph.render_graph(repo_index(self.file_path))
+            self.render_timeline()
             self.editor.document().setModified(False)
 
     # Helper functions
@@ -472,7 +474,7 @@ class MaroonLines(QMainWindow):
         else:
             self.file_hash = None
 
-    def index_curr_is_different_from_file_in_editor(self):
+    def index_head_differs_from_current_text(self):
         return repo_index_head(self.file_path) != get_hash(self.editor.get_text())
 
     def file_content_changed(self):
@@ -482,15 +484,11 @@ class MaroonLines(QMainWindow):
         if not repo_exists(self.file_path):
             init_repo(self.file_path, self.editor.get_text())
 
-        if self.index_curr_is_different_from_file_in_editor():
+        if self.index_head_differs_from_current_text():
             if repo_file_object_exists(self.file_path, self.file_hash):
                 update_repo_index_head(self.file_path, self.file_hash)
             else:
                 add_file_object_to_index(self.file_path, self.editor.get_text(), adopted=True)
-
-    def move_file(self, file_path):
-        move_repo(old_file_path=self.file_path, new_file_path=file_path)
-        self.remove_file(self.file_path)
 
     def content_is_saved(self, close_window=False):
         if (not self.file_path and not self.editor.get_text()) or \
@@ -508,6 +506,19 @@ class MaroonLines(QMainWindow):
             return self.handle_save_action()
         elif clicked_button == QDialogButtonBox.Ignore or clicked_button == QDialogButtonBox.Close:
             return True
+
+    def render_timeline(self, edit_mode=False):
+        if self.file_path:
+            index = repo_index(self.file_path)
+        else:
+            index = None
+
+        if index and edit_mode:
+            head = index[INDEX_HEAD]
+            index[head].append(self.timeline.UNSAVED_NODE)
+            index[self.timeline.UNSAVED_NODE] = []
+
+        self.timeline.render_graph(index)
 
     @staticmethod
     def get_extension(value):
