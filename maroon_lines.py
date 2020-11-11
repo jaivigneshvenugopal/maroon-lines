@@ -19,7 +19,6 @@ class MaroonLines(QMainWindow):
     """
 
     DEFAULT_FILE_NAME = 'untitled'
-    BACKGROUND_COLOR = '#33333d'
 
     @property
     def file_path(self):
@@ -27,6 +26,7 @@ class MaroonLines(QMainWindow):
 
     @file_path.setter
     def file_path(self, value):
+        print('gettign into setter')
         self._file_path = value
 
         if self.status_bar:
@@ -43,6 +43,7 @@ class MaroonLines(QMainWindow):
         # Configure syntax highlighting everytime file name changes.
         if self.editor:
             extension = self.get_extension(value)
+            print(extension)
             self.editor.configure_syntax_highlighting(extension)
 
     @property
@@ -357,7 +358,7 @@ class MaroonLines(QMainWindow):
 
         self.editor.store_file(file_path)
         self.editor.clear_modified_flag()
-
+        print('hello')
         # if there is an intent to create a copy of the file and its history
         if self.file_path and self.file_path != file_path:
             copy_repo(old_file_path=self.file_path, new_file_path=file_path)

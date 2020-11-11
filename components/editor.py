@@ -77,20 +77,20 @@ class PyQodeEditor(CodeEdit):
 
         self.highlighter = None
         self.lexers = {
-            'c': CLexer,
-            'py': PythonLexer,
-            'cpp': CppLexer,
-            'java': JavaLexer,
-            'js': JavascriptLexer,
-            'sh': BashLexer,
-            'sql': SqlLexer,
-            'css': CssLexer,
-            'html': HtmlLexer,
-            'rb': RubyLexer,
-            'scala': ScalaLexer,
-            'go': GoLexer,
-            'm': MatlabLexer,
-            'hs': HaskellLexer
+            '.c': CLexer,
+            '.py': PythonLexer,
+            '.cpp': CppLexer,
+            '.java': JavaLexer,
+            '.js': JavascriptLexer,
+            '.sh': BashLexer,
+            '.sql': SqlLexer,
+            '.css': CssLexer,
+            '.html': HtmlLexer,
+            '.rb': RubyLexer,
+            '.scala': ScalaLexer,
+            '.go': GoLexer,
+            '.m': MatlabLexer,
+            '.hs': HaskellLexer
         }
 
         # Instantiate Components
