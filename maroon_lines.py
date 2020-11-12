@@ -183,11 +183,6 @@ class MaroonLines(QMainWindow):
         self.clear_history_action.triggered.connect(self.handle_clear_history_action)
         self.clear_history_action.setEnabled(False)
 
-    # Development code - comment out during production
-    def handle_insert_action(self):
-        self.editor.set_text(str(random()))
-        self.handle_save_action()
-
     def configure_status_bar(self):
         """
         Display 4 crucial information through the use of status bar
@@ -286,7 +281,6 @@ class MaroonLines(QMainWindow):
             return
 
         self.editor.clear_text()
-        self.editor.clear_modified_flag()
 
         self.update_file_path_and_hash()
         self.render_timeline()
@@ -306,7 +300,6 @@ class MaroonLines(QMainWindow):
             return
 
         self.editor.load_file(file_path)
-        self.editor.clear_modified_flag()
 
         self.load_index(file_path)
 
@@ -324,7 +317,6 @@ class MaroonLines(QMainWindow):
             return self.handle_save_as_action()
 
         self.editor.store_file(self.file_path)
-        self.editor.clear_modified_flag()
 
         file_data = self.editor.get_text()
         self.file_hash = get_hash(file_data)
@@ -355,7 +347,6 @@ class MaroonLines(QMainWindow):
             return self.handle_save_action()
 
         self.editor.store_file(file_path)
-        self.editor.clear_modified_flag()
 
         # if there is an intent to create a copy of the file and its history
         if self.file_path and self.file_path != file_path:
@@ -392,7 +383,6 @@ class MaroonLines(QMainWindow):
 
         self.editor.remove_file(self.file_path)
         self.editor.store_file(file_path)
-        self.editor.clear_modified_flag()
 
         move_repo(old_file_path=self.file_path, new_file_path=file_path)
 
@@ -417,14 +407,18 @@ class MaroonLines(QMainWindow):
         # This accounts for that case - ensuring current text is not saved but its history is cleared.
         if self.index_head_differs_from_live_text():
             file_data = repo_file_object(self.file_path, self.file_hash)
-            rebuilt_repo(self.file_path, file_data)
-            self.editor.set_modified_flag()
-            self.render_timeline(edit_mode=True)
+            edit_mode = True
         else:
             file_data = self.editor.get_text()
-            rebuilt_repo(self.file_path, file_data)
-            self.editor.clear_modified_flag()
-            self.render_timeline()
+            edit_mode = False
+
+        rebuilt_repo(self.file_path, file_data)
+        self.render_timeline(edit_mode=edit_mode)
+
+    # Development code - comment out during production
+    def handle_insert_action(self):
+        self.editor.set_text(str(random()))
+        self.handle_save_action()
 
     def render_timeline(self, edit_mode=False):
         """
@@ -473,6 +467,7 @@ class MaroonLines(QMainWindow):
 
     def load_index(self, file_path):
         file_data = self.editor.get_text()
+
         if not repo_exists(file_path):
             init_repo(file_path, file_data)
             return
@@ -514,33 +509,34 @@ class MaroonLines(QMainWindow):
         Display a unorthodox node with a dotted edge to its parent, to demonstrate the unsaved nature of a file.
 
         """
-        if not file_modified:
+        if not self.file_path or not self.file_hash:
             return
 
-        if not self.file_path or not self.file_hash:
+        if not file_modified:
             return
 
         if self.head_node_changed:
             self.head_node_changed = False
             return
 
-        self.editor.set_modified_flag()
         self.render_timeline(edit_mode=True)
 
     # Slot Function
     def load_repo_file_object(self, file_hash):
         self.file_hash = file_hash
         self.head_node_changed = True
+
+        # Editor's set_text emits two signals (True and False) back to back (might be a bug)
+        # This somewhat screws up the functionality of modificationChanged signal
+        # Thus, I am checking if file was in edit mode before I execute set_text
+        file_was_in_edit_mode = self.file_in_edit_mode()
         self.editor.set_text(repo_file_object(self.file_path, file_hash))
         self.editor.store_file(self.file_path)
 
         update_repo_index_head(self.file_path, file_hash)
 
         # This is to clear away the node with the dotted edge - which is displayed when file is in edit mode
-        print('ps')
-        if self.file_in_edit_mode():
-            print('file in edit mode')
-            self.editor.clear_modified_flag()
+        if file_was_in_edit_mode:
             self.render_timeline()
 
     # Helper function

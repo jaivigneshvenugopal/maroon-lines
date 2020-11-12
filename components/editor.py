@@ -250,12 +250,24 @@ class PyQodeEditor(CodeEdit):
 
     def set_text(self, text):
         self.setPlainText(text, self.MIME, self.ENCODING)
+        self.clear_modified_flag()
 
     def clear_text(self):
         self.setPlainText('', self.MIME, self.ENCODING)
+        self.clear_modified_flag()
 
     def get_text(self):
         return self.toPlainText()
+
+    def load_file(self, file_path):
+        with open(file_path, 'r') as f:
+            self.set_text(f.read())
+
+    def store_file(self, file_path):
+        with open(file_path, 'w') as f:
+            f.write(self.get_text())
+
+        self.clear_modified_flag()
 
     def get_lines(self):
         return max(1, self.blockCount())
@@ -265,14 +277,6 @@ class PyQodeEditor(CodeEdit):
 
     def set_modified_flag(self):
         self.document().setModified(True)
-
-    def load_file(self, file_path):
-        with open(file_path, 'r') as f:
-            self.set_text(f.read())
-
-    def store_file(self, file_path):
-        with open(file_path, 'w') as f:
-            f.write(self.get_text())
 
     @staticmethod
     def remove_file(file_path):
