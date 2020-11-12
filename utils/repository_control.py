@@ -317,11 +317,11 @@ def add_file_object_to_index(file_path, file_data, adopted=False):
     write_repo_file_object(file_path, file_data)
 
 
-def get_hash(file_data):
+def get_hash(data):
     """
     Get hash of file content.
 
-    :param file_data: file content
+    :param data: file content
     :return: hash of file content
     """
-    return hashlib.sha1(file_data.encode()).hexdigest()
+    return hashlib.sha1(data.encode()).hexdigest()

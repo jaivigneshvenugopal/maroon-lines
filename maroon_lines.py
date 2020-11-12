@@ -351,7 +351,7 @@ class MaroonLines(QMainWindow):
         # if there is an intent to create a copy of the file and its history
         if self.file_path and self.file_path != file_path:
             copy_repo(old_file_path=self.file_path, new_file_path=file_path)
-            if self.index_head_differs_from_live_text():
+            if self.index_head_differs_from_live_text(self.file_path):
                 # Check if newly saved content is pre-existing in repo history.
                 if repo_file_object_exists(self.file_path, self.file_hash):
                     update_repo_index_head(self.file_path, self.file_hash)
@@ -405,7 +405,7 @@ class MaroonLines(QMainWindow):
 
         # There will be a case where uses wishes to clear history while the current text is not saved.
         # This accounts for that case - ensuring current text is not saved but its history is cleared.
-        if self.index_head_differs_from_live_text():
+        if self.index_head_differs_from_live_text(self.file_path):
             file_data = repo_file_object(self.file_path, self.file_hash)
             edit_mode = True
         else:
@@ -472,7 +472,7 @@ class MaroonLines(QMainWindow):
             init_repo(file_path, file_data)
             return
 
-        if self.index_head_differs_from_live_text():
+        if self.index_head_differs_from_live_text(file_path):
             # Check if content is pre-existing in repo history.
             if repo_file_object_exists(file_path, file_data):
                 update_repo_index_head(file_path, file_data)
@@ -548,12 +548,12 @@ class MaroonLines(QMainWindow):
             self.file_hash = None
 
     # Helper function
-    def index_head_differs_from_live_text(self):
-        return repo_index_head(self.file_path) != get_hash(self.editor.get_text())
+    def index_head_differs_from_live_text(self, file_path):
+        return repo_index_head(file_path) != get_hash(self.editor.get_text())
 
     # Helper function
     def file_content_did_not_change(self):
-        return self.file_path and not self.index_head_differs_from_live_text()
+        return self.file_path and not self.index_head_differs_from_live_text(self.file_path)
 
     # Helper function
     def file_is_virgin(self):
