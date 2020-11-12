@@ -1,6 +1,6 @@
 import sys
 from PyQt5 import QtWidgets
-from maroon_lines import MaroonLines
+from components.maroon_lines import MaroonLines
 
 
 class App:
