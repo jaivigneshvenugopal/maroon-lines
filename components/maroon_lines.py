@@ -435,7 +435,7 @@ class MaroonLines(QMainWindow):
             index[head].append(self.timeline.UNSAVED_NODE)
             index[self.timeline.UNSAVED_NODE] = []
 
-        self.timeline.render_graph(index)
+        self.timeline.render_graph(index, edit_mode=edit_mode)
 
     def content_is_saved(self, close_window=False):
         """

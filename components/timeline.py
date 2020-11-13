@@ -42,6 +42,7 @@ class Timeline(QMainWindow):
         self.plot = None
 
         self.index = None
+        self.edit_mode = None
 
         # Graph plot related properties
         self.graph = None
@@ -77,8 +78,9 @@ class Timeline(QMainWindow):
         self.adopts = None
         self.num_nodes = None
 
-    def render_graph(self, index):
+    def render_graph(self, index, edit_mode):
         self.index = index
+        self.edit_mode = edit_mode
         self.build_graph()
 
     def build_graph(self):
@@ -94,7 +96,7 @@ class Timeline(QMainWindow):
             self.add_temp_node()
 
         self.num_nodes = len(self.graph.nodes())
-        self.num_nodes_changed.emit(self.num_nodes)
+        self.num_nodes_changed.emit(self.num_nodes if not self.edit_mode else self.num_nodes - 1)
         self.configure_node_and_edge_aesthetics()
         self.plot_graph()
 
@@ -158,7 +160,7 @@ class Timeline(QMainWindow):
         for node, node_attrs in self.graph.nodes(data=True):
 
             if node == self.root and node == self.head:
-                if len(self.graph.nodes) == 1:
+                if len(self.graph.nodes) == 1 or self.edit_mode:
                     node_attrs['color'] = self.ROOT_NODE_COLOR
                 else:
                     node_attrs['color'] = self.HEAD_NODE_COLOR
