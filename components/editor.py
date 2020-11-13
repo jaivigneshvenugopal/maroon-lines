@@ -238,8 +238,12 @@ class PyQodeEditor(CodeEdit):
     def configure_syntax_highlighting(self, extension=None):
         if self.highlighter:
             self.language.emit(self.DEFAULT_LANGUAGE)
-            self.modes.remove(modes.PygmentsSyntaxHighlighter)
             self.highlighter = None
+
+            # Removing the highlighter does not refresh current text
+            # Therefore, it is a necessity to call the set_text method
+            self.modes.remove(modes.PygmentsSyntaxHighlighter)
+            self.set_text(self.get_text())
 
         if extension in self.lexers:
             lexer = self.lexers[extension]
