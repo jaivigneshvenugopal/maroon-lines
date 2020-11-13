@@ -156,14 +156,25 @@ class Timeline(QMainWindow):
             return
 
         for node, node_attrs in self.graph.nodes(data=True):
-            if node == self.root:
+
+            if node == self.root and node == self.head:
+                if len(self.graph.nodes) == 1:
+                    node_attrs['color'] = self.ROOT_NODE_COLOR
+                else:
+                    node_attrs['color'] = self.HEAD_NODE_COLOR
+
+            elif node == self.root:
                 node_attrs['color'] = self.ROOT_NODE_COLOR
+
             elif node == self.head:
                 node_attrs['color'] = self.HEAD_NODE_COLOR
+
             elif node == self.UNSAVED_NODE:
                 node_attrs['color'] = self.UNSAVED_NODE_COLOR
+
             else:
                 node_attrs['color'] = self.DEFAULT_NODE_COLOR
+
             node_attrs['size'] = self.get_node_size()
 
         for u, v, attrs in self.graph.edges.data():
