@@ -570,11 +570,11 @@ class MaroonLines(QMainWindow):
         :param value: file_path
         :return: extension of file_path
         """
-        if value:
-            _, ext = os.path.splitext(value)
-            return ext
-        else:
+        if not value:
             return None
+
+        _, ext = os.path.splitext(value)
+        return ext
 
 
 if __name__ == '__main__':

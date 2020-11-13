@@ -15,18 +15,8 @@ from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 
-from pygments.lexers.python import PythonLexer
-from pygments.lexers.jvm import JavaLexer, ScalaLexer
-from pygments.lexers.c_cpp import CppLexer, CLexer
-from pygments.lexers.javascript import JavascriptLexer
-from pygments.lexers.html import HtmlLexer
-from pygments.lexers.css import CssLexer
-from pygments.lexers.sql import SqlLexer
-from pygments.lexers.shell import BashLexer
-from pygments.lexers.ruby import RubyLexer
-from pygments.lexers.go import GoLexer
-from pygments.lexers.matlab import MatlabLexer
-from pygments.lexers.haskell import HaskellLexer
+import pygments.lexers as lexers
+from pygments.lexers import find_lexer_class, find_lexer_class_for_filename
 
 
 class LineNumberPanel(DefaultLineNumberPanel):
@@ -76,22 +66,6 @@ class PyQodeEditor(CodeEdit):
         super().__init__()
 
         self.highlighter = None
-        self.lexers = {
-            '.c': CLexer,
-            '.py': PythonLexer,
-            '.cpp': CppLexer,
-            '.java': JavaLexer,
-            '.js': JavascriptLexer,
-            '.sh': BashLexer,
-            '.sql': SqlLexer,
-            '.css': CssLexer,
-            '.html': HtmlLexer,
-            '.rb': RubyLexer,
-            '.scala': ScalaLexer,
-            '.go': GoLexer,
-            '.m': MatlabLexer,
-            '.hs': HaskellLexer
-        }
 
         # Instantiate Components
         self.configure_backend()
@@ -245,8 +219,11 @@ class PyQodeEditor(CodeEdit):
             self.modes.remove(modes.PygmentsSyntaxHighlighter)
             self.set_text(self.get_text())
 
-        if extension in self.lexers:
-            lexer = self.lexers[extension]
+        if extension:
+            lexer = find_lexer_class_for_filename(extension)
+            if not lexer:
+                return
+
             self.language.emit(lexer().name)
             self.highlighter = modes.PygmentsSyntaxHighlighter(self.document(), lexer=lexer())
             self.highlighter.pygments_style = self.THEME
