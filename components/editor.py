@@ -68,7 +68,7 @@ class PyQodeEditor(CodeEdit):
         self.highlighter = None
 
         # Instantiate Components
-        self.configure_backend()
+        # self.configure_backend()
         self.configure_modes_and_panels()
         self.configure_font()
         self.configure_aesthetics()

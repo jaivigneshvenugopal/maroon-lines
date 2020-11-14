@@ -5,8 +5,6 @@ __pycache__/
 
 repos/
 
-test.py
+build/
 
-vig
-
-ui.ui
+dist/
