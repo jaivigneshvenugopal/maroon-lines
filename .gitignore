@@ -8,3 +8,7 @@ repos/
 build/
 
 dist/
+
+deb_dev/
+
+dev_prod/

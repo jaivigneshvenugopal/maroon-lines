@@ -190,7 +190,7 @@ class MaroonLines(QMainWindow):
         1. Number of lines
         2. Language used
         3. File path of current file in session
-        4. Number of versions for current file in session
+        4. Number of deb_prod for current file in session
 
         """
         self.setStatusBar(self.status_bar)
