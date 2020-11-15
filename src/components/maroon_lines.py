@@ -198,26 +198,34 @@ class MaroonLines(QMainWindow):
 
         """
         self.setStatusBar(self.status_bar)
-        self.status_bar.setStyleSheet("""border: 0px; background: #33333d; color: #CDD7D3;""")
+        self.status_bar.setStyleSheet("""
+                QStatusBar {
+                    background-color: #33333d; 
+                 }
+                 
+                 QStatusBar::item {
+                    border: 0px solid black;
+                }""")
 
         self.status_bar_num_lines_label.setText('Lines: 1')
         self.status_bar_num_lines_label.setAlignment(Qt.AlignLeft)
         self.status_bar_num_lines_label.setFont(QFont('Calibri', 13))
-        self.status_bar_num_lines_label.setStyleSheet("""padding-right: 2px; border: 0px solid black;""")
+        self.status_bar_num_lines_label.setStyleSheet("""padding-right: 2px; color: #CDD7D3;""")
 
         self.status_bar_num_nodes_label.setText('Versions: 1')
         self.status_bar_num_nodes_label.setAlignment(Qt.AlignRight)
         self.status_bar_num_nodes_label.setFont(QFont('Calibri', 13))
-        self.status_bar_num_nodes_label.setStyleSheet("""padding-right: 2px; border: 0px solid black;""")
+        self.status_bar_num_nodes_label.setStyleSheet("""padding-right: 2px; color: #CDD7D3;""")
 
         self.status_bar_file_path_label.setText(self.file_name)
         self.status_bar_file_path_label.setAlignment(Qt.AlignCenter)
         self.status_bar_file_path_label.setFont(QFont('Calibri', 13))
+        self.status_bar_file_path_label.setStyleSheet("""padding-right: 2px; color: #CDD7D3;""")
 
         self.status_bar_curr_language_label.setText(self.editor.DEFAULT_LANGUAGE)
         self.status_bar_curr_language_label.setAlignment(Qt.AlignCenter)
         self.status_bar_curr_language_label.setFont(QFont('Calibri', 13))
-        self.status_bar_curr_language_label.setStyleSheet("""padding-right: 2px;""")
+        self.status_bar_curr_language_label.setStyleSheet("""padding-right: 2px; color: #CDD7D3;""")
 
         self.status_bar.addPermanentWidget(self.status_bar_num_lines_label, 10)
         self.status_bar.addPermanentWidget(self.status_bar_curr_language_label, 30)
