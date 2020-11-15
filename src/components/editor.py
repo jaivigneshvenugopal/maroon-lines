@@ -95,7 +95,7 @@ class PyQodeEditor(CodeEdit):
         self.font_size = self.FONT_SIZE
 
     def configure_aesthetics(self):
-        self.setStyleSheet("background-color: {}".format(self.BACKGROUND_COLOR))
+        self.setStyleSheet("background-color: {}; border: 0px;".format(self.BACKGROUND_COLOR))
         self.configure_scrollbar_aesthetics()
 
     def configure_actions_and_shortcuts(self):
