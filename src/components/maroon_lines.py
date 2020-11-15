@@ -170,9 +170,9 @@ class MaroonLines(QMainWindow):
         exit_action.triggered.connect(self.handle_exit_action)
 
         # Development code - comment out during production
-        insert_test_text = file_menu.addAction('Insert Random Text and Save File')
-        insert_test_text.setShortcut("Ctrl+L")
-        insert_test_text.triggered.connect(self.handle_insert_action)
+        # insert_test_text = file_menu.addAction('Insert Random Text and Save File')
+        # insert_test_text.setShortcut("Ctrl+L")
+        # insert_test_text.triggered.connect(self.handle_insert_action)
 
         self.rename_move_action = repo_menu.addAction('Move/Rename')
         self.rename_move_action.setShortcut("Ctrl+M")
@@ -416,9 +416,9 @@ class MaroonLines(QMainWindow):
         self.render_timeline(edit_mode=edit_mode)
 
     # Development code - comment out during production
-    def handle_insert_action(self):
-        self.editor.set_text(str(random()))
-        self.handle_save_action()
+    # def handle_insert_action(self):
+    #     self.editor.set_text(str(random()))
+    #     self.handle_save_action()
 
     def render_timeline(self, edit_mode=False):
         """
