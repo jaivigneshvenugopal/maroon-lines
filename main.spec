@@ -3,8 +3,8 @@
 block_cipher = None
 
 
-a = Analysis(['main.py'],
-             pathex=['/home/jaivigneshvenugopal/code/maroon-lines'],
+a = Analysis(['src\\main.py'],
+             pathex=['C:\\Users\\Jaivignesh Venugopal\\Desktop\\maroon-lines'],
              binaries=[],
              datas=[],
              hiddenimports=[],
@@ -21,12 +21,12 @@ exe = EXE(pyz,
           a.scripts,
           [],
           exclude_binaries=True,
-          name='maroonlines',
+          name='Maroon Lines',
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,
-          console=False)
+          console=False )
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,
@@ -34,4 +34,4 @@ coll = COLLECT(exe,
                strip=False,
                upx=True,
                upx_exclude=[],
-               name='maroon_lines')
+               name='maroonlines')

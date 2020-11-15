@@ -11,6 +11,8 @@ from components.unsaved_content_dialog import UnsavedContentDialog
 from components.alert_dialog import AlertDialog
 from components.menu_bar import MenuBar
 
+from IPython import embed
+
 
 class MaroonLines(QMainWindow):
     """
@@ -18,7 +20,7 @@ class MaroonLines(QMainWindow):
 
     """
 
-    DEFAULT_FILE_NAME = 'untitled'
+    DEFAULT_FILE_NAME = 'Untitled'
 
     @property
     def file_path(self):
@@ -146,6 +148,8 @@ class MaroonLines(QMainWindow):
         Create all relevant actions necessary for a source code editor
 
         """
+        self.menu_bar.setFont(QFont('Calibri', 13))
+
         file_menu = self.menu_bar.addMenu('File')
         repo_menu = self.menu_bar.addMenu('Repo')
 
@@ -194,48 +198,26 @@ class MaroonLines(QMainWindow):
 
         """
         self.setStatusBar(self.status_bar)
-        self.status_bar.setStyleSheet("""
-            QStatusBar {
-                background: #33333d;
-                color: #CDD7D3;
-                font: 17px;
-            }
-        """)
+        self.status_bar.setStyleSheet("""border: 0px; background: #33333d; color: #CDD7D3;""")
 
         self.status_bar_num_lines_label.setText('Lines: 1')
         self.status_bar_num_lines_label.setAlignment(Qt.AlignLeft)
-        self.status_bar_num_lines_label.setStyleSheet("""
-            QLabel {
-                color: #CDD7D3;
-                padding-left: 2px;
-            }
-        """)
+        self.status_bar_num_lines_label.setFont(QFont('Calibri', 13))
+        self.status_bar_num_lines_label.setStyleSheet("""padding-right: 2px; border: 0px solid black;""")
 
         self.status_bar_num_nodes_label.setText('Versions: 1')
         self.status_bar_num_nodes_label.setAlignment(Qt.AlignRight)
-        self.status_bar_num_nodes_label.setStyleSheet("""
-            QLabel {
-                color: #CDD7D3;
-                padding-right: 2px;
-            }
-        """)
+        self.status_bar_num_nodes_label.setFont(QFont('Calibri', 13))
+        self.status_bar_num_nodes_label.setStyleSheet("""padding-right: 2px; border: 0px solid black;""")
 
         self.status_bar_file_path_label.setText(self.file_name)
         self.status_bar_file_path_label.setAlignment(Qt.AlignCenter)
-        self.status_bar_file_path_label.setStyleSheet("""
-            QLabel {
-                color: #CDD7D3;
-            }
-        """)
+        self.status_bar_file_path_label.setFont(QFont('Calibri', 13))
 
         self.status_bar_curr_language_label.setText(self.editor.DEFAULT_LANGUAGE)
-        self.status_bar_curr_language_label.setAlignment(Qt.AlignLeft)
-        self.status_bar_curr_language_label.setStyleSheet("""
-            QLabel {
-                color: #CDD7D3;
-                padding-right: 2px;
-            }
-        """)
+        self.status_bar_curr_language_label.setAlignment(Qt.AlignCenter)
+        self.status_bar_curr_language_label.setFont(QFont('Calibri', 13))
+        self.status_bar_curr_language_label.setStyleSheet("""padding-right: 2px;""")
 
         self.status_bar.addPermanentWidget(self.status_bar_num_lines_label, 10)
         self.status_bar.addPermanentWidget(self.status_bar_curr_language_label, 30)

@@ -57,7 +57,7 @@ class PyQodeEditor(CodeEdit):
     BACKGROUND_COLOR = '#fcfcfc'
 
     FONT_NAME = 'Source Code Pro'
-    FONT_SIZE = 12
+    FONT_SIZE = 14
 
     MIME = 'text/plain'
     ENCODING = 'utf-8'
