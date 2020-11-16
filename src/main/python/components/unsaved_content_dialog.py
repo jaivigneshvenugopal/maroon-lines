@@ -3,27 +3,31 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 
 
-class AlertDialog(QDialog):
+class UnsavedContentDialog(QDialog):
     """
-    A class to represent a Dialog box component that alerts users before a user action could be processed.
+    A class to represent a Dialog box component that questions users about unsaved content
+    before a action could be processed.
 
     Attributes
     ----------
     window_title - Window title of the dialog box.
     text_to_display - Text to display on dialog box.
+    close_window - Boolean that indicates if application should be closed after the dialog box is processed.
 
     """
-    def __init__(self, window_title, text_to_display):
+
+    def __init__(self, window_title, text_to_display, close_window=False):
         super().__init__()
 
         # Properties
         self.window_title = window_title
         self.text_to_display = text_to_display
+        self.close_window = close_window
 
         self.dialog_message_label = None
-        self.buttons_to_display = None
-        self.clicked_button = None
         self.layout = None
+        self.clicked_button = None
+        self.buttons_to_display = None
 
         # Instantiate relevant components
         self.configure_dialog_stylesheet()
@@ -49,10 +53,17 @@ class AlertDialog(QDialog):
         self.setPalette(palette)
 
     def configure_buttons_to_display(self):
-        self.buttons_to_display = QDialogButtonBox(QDialogButtonBox.Yes | QDialogButtonBox.Cancel)
+        if self.close_window:
+            self.buttons_to_display = QDialogButtonBox(QDialogButtonBox.Save |
+                                                       QDialogButtonBox.Cancel |
+                                                       QDialogButtonBox.Close)
+        else:
+            self.buttons_to_display = QDialogButtonBox(QDialogButtonBox.Save |
+                                                       QDialogButtonBox.Ignore)
+
         self.buttons_to_display.clicked.connect(self.handle_button_clicked_action)
         for button in self.buttons_to_display.buttons():
-            button.setFont(QFont())
+            button.setFont(QFont('Calibri', 12))
             button.setIcon(QIcon())
             button.setStyleSheet("""
                 QPushButton { 
@@ -81,10 +92,8 @@ class AlertDialog(QDialog):
 
     def configure_message_label(self):
         self.dialog_message_label = QLabel()
+        self.dialog_message_label.setFont(QFont('Calibri', 12))
         self.dialog_message_label.setText(self.text_to_display)
-
-        font = self.dialog_message_label.font()
-        self.dialog_message_label.setFont(font)
 
         palette = self.dialog_message_label.palette()
         palette.setColor(self.foregroundRole(), QColor(255, 255, 255))
@@ -97,9 +106,13 @@ class AlertDialog(QDialog):
         self.setLayout(self.layout)
 
     def handle_button_clicked_action(self, clicked_button):
-        if clicked_button == self.buttons_to_display.button(QDialogButtonBox.Yes):
-            self.clicked_button = QDialogButtonBox.Yes
+        if clicked_button == self.buttons_to_display.button(QDialogButtonBox.Save):
+            self.clicked_button = QDialogButtonBox.Save
         elif clicked_button == self.buttons_to_display.button(QDialogButtonBox.Cancel):
             self.clicked_button = QDialogButtonBox.Cancel
+        elif clicked_button == self.buttons_to_display.button(QDialogButtonBox.Close):
+            self.clicked_button = QDialogButtonBox.Close
+        elif clicked_button == self.buttons_to_display.button(QDialogButtonBox.Ignore):
+            self.clicked_button = QDialogButtonBox.Ignore
 
         self.close()
