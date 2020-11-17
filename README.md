@@ -38,7 +38,7 @@ pyenv local fbs
 
 ### Install Pip Packages
 ```
-pip install IPython wheel fbs pyqode.core networkx grave matplotlib==3.2.2 PyQt5==5.9.2
+pip install IPython wheel fbs pyqode.core pyqode.python networkx grave matplotlib==3.2.2 PyQt5==5.9.2
 ```
 
 ### Generate installer

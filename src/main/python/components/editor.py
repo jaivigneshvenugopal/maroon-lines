@@ -10,6 +10,7 @@ from pyqode.core import modes
 from pyqode.core import panels
 from pyqode.core.panels import LineNumberPanel as DefaultLineNumberPanel
 from pyqode.qt import QtWidgets
+from pyqode.python.modes import CommentsMode
 
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
@@ -85,6 +86,7 @@ class PyQodeEditor(CodeEdit):
         self.modes.append(modes.IndenterMode())
         self.modes.append(modes.AutoIndentMode())
         self.modes.append(modes.AutoCompleteMode())
+        self.modes.append(CommentsMode())
 
         # Panels
         self.panels.append(LineNumberPanel(), api.Panel.Position.LEFT)
