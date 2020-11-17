@@ -1,60 +1,67 @@
-import PyQt5
-import matplotlib.pyplot as plt
-import networkx as nx
 from PyQt5.QtWidgets import *
+from PyQt5 import QtCore
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backend_bases import MouseButton
 from grave import plot_network
 from grave.style import use_attributes
+import matplotlib.pyplot as plt
+import networkx as nx
 from IPython import embed
 
 
 class Timeline(QMainWindow):
+    """
+    Graphical component of the editor that visualizes the various versions of a file.
+
+    """
 
     # Signals
-    curr_node_changed = PyQt5.QtCore.pyqtSignal(str)
-    num_nodes_changed = PyQt5.QtCore.pyqtSignal(str)
+    request_to_change_node = QtCore.pyqtSignal(str)
+    head_node_changed = QtCore.pyqtSignal(str)
+    num_nodes_changed = QtCore.pyqtSignal(int)
 
     # Constants
     ROOT_NODE_COLOR = '#006400'
-    CURR_NODE_COLOR = '#d00000'
+    HEAD_NODE_COLOR = '#d00000'
     UNSAVED_NODE_COLOR = '#FF7F7F'
     DEFAULT_NODE_SIZE = 200
     DEFAULT_NODE_COLOR = '#25B0B0'
     FIGURE_BACKGROUND_COLOR = '#fff0f0'
+    UNSAVED_NODE = 'unsaved_node'
+
+    INDEX_HEAD = 'head'
+    INDEX_ROOT = 'root'
+    INDEX_ADOPTS = 'adopts'
 
     def __init__(self):
         super(Timeline, self).__init__()
 
         # Widget-related properties
-        self.figure = plt.figure()
-        self.canvas = FigureCanvas(self.figure)
+        self.figure = None
+        self.canvas = None
         self.plot = None
 
-        # Graph-related properties
         self.index = None
+        self.edit_mode = None
+
+        # Graph plot related properties
         self.graph = None
-        self.num_nodes = None
-        self.root = None
-        self.curr = None
-        self.unsaved_node = 'unsaved_node'
-        self.adopts = None
+        self.graph_matrix = None
         self.pos_x = None
         self.pos_y = None
-        self.graph_matrix = None
-
-        # Graph-node related properties
-        self.root_node_color = self.ROOT_NODE_COLOR
-        self.curr_node_color = self.CURR_NODE_COLOR
-        self.unsaved_node_color = self.UNSAVED_NODE_COLOR
-        self.intermediate_node_color = self.DEFAULT_NODE_COLOR
-        self.default_node_size = self.DEFAULT_NODE_SIZE
+        self.root = None
+        self.head = None
+        self.adopts = None
+        self.num_nodes = None
 
         # Instantiate relevant components
         self.configure_figure_and_canvas()
         self.configure_layout_and_show()
 
     def configure_figure_and_canvas(self):
+        self.figure = plt.figure()
         self.figure.set_facecolor(self.FIGURE_BACKGROUND_COLOR)
+        self.canvas = FigureCanvas(self.figure)
         self.canvas.mpl_connect('pick_event', self.pick_event)
 
     def configure_layout_and_show(self):
@@ -62,16 +69,18 @@ class Timeline(QMainWindow):
         self.show()
 
     def reset_graph_properties(self):
-        self.num_nodes = None
-        self.root = None
-        self.curr = None
-        self.adopts = None
+        self.graph = None
+        self.graph_matrix = None
         self.pos_x = None
         self.pos_y = None
-        self.graph_matrix = None
+        self.root = None
+        self.head = None
+        self.adopts = None
+        self.num_nodes = None
 
-    def render_graph(self, index):
+    def render_graph(self, index, edit_mode):
         self.index = index
+        self.edit_mode = edit_mode
         self.build_graph()
 
     def build_graph(self):
@@ -79,16 +88,15 @@ class Timeline(QMainWindow):
         self.figure.clf()
         self.graph = nx.DiGraph()
 
-        if not self.index:
-            self.graph.add_node('temp_node')
-            self.num_nodes = 1
-        else:
+        if self.index:
             self.extract_critical_nodes()
             self.add_nodes_and_edges()
             self.assign_node_positions()
-            self.num_nodes = len(self.graph.nodes())
+        else:
+            self.add_temp_node()
 
-        self.num_nodes_changed.emit(str(self.num_nodes))
+        self.num_nodes = len(self.graph.nodes())
+        self.num_nodes_changed.emit(self.num_nodes if not self.edit_mode else self.num_nodes - 1)
         self.configure_node_and_edge_aesthetics()
         self.plot_graph()
 
@@ -101,7 +109,8 @@ class Timeline(QMainWindow):
         self.plot.set_picker(1)
         self.plot.axes.set_position([0.02, 0, 0.96, 1])
 
-        if self.pos_y and self.pos_x:
+        # Set optimum x and y scale for sequential layout
+        if layout == self.sequential_layout:
             max_y = len(set(self.pos_y.values()))
             if max_y < 12:
                 self.plot.axes.set_ylim(-0.5, 12.5)
@@ -113,82 +122,115 @@ class Timeline(QMainWindow):
         self.canvas.draw_idle()
 
     def refresh_graph(self):
+        """
+        Use function when there is no need to re-instantiate graph related attributes.
+
+        :return: None
+        """
+
+        # Marking stale as True informs the plot that it has to be redrawn, but I have no idea why I have to write it
         self.plot.stale = True
         self.canvas.draw_idle()
-        self.curr_node_changed.emit(self.curr)
+        self.head_node_changed.emit(self.head)
 
     def extract_critical_nodes(self):
-        self.root = self.index['root']
-        self.curr = self.index['curr']
-        self.adopts = self.index['adopts']
-        self.index.pop('root')
-        self.index.pop('curr')
-        self.index.pop('adopts')
+        self.root = self.index[self.INDEX_ROOT]
+        self.head = self.index[self.INDEX_HEAD]
+        self.adopts = self.index[self.INDEX_ADOPTS]
+        self.index.pop(self.INDEX_ROOT)
+        self.index.pop(self.INDEX_HEAD)
+        self.index.pop(self.INDEX_ADOPTS)
+
+    def add_temp_node(self):
+        self.graph.add_node(self.UNSAVED_NODE)
 
     def add_nodes_and_edges(self):
-        if self.index:
-            for key, values in self.index.items():
-                self.graph.add_node(key)
-                for val in values:
-                    self.graph.add_edge(key, val)
+        for key, values in self.index.items():
+            self.graph.add_node(key)
+            for val in values:
+                self.graph.add_edge(key, val)
 
     def configure_node_and_edge_aesthetics(self):
         if not self.index:
             for _, node_attrs in self.graph.nodes(data=True):
-                node_attrs['color'] = self.intermediate_node_color
+                node_attrs['color'] = self.DEFAULT_NODE_COLOR
                 node_attrs['size'] = self.get_node_size()
-        else:
-            for node, node_attrs in self.graph.nodes(data=True):
-                if node == self.root:
-                    node_attrs['color'] = self.root_node_color
-                elif node == self.curr:
-                    node_attrs['color'] = self.curr_node_color
-                elif node == self.unsaved_node:
-                    node_attrs['color'] = self.unsaved_node_color
+            return
+
+        for node, node_attrs in self.graph.nodes(data=True):
+
+            if node == self.root and node == self.head:
+                if len(self.graph.nodes) == 1 or self.edit_mode:
+                    node_attrs['color'] = self.ROOT_NODE_COLOR
                 else:
-                    node_attrs['color'] = self.intermediate_node_color
-                node_attrs['size'] = self.get_node_size()
+                    node_attrs['color'] = self.HEAD_NODE_COLOR
 
-            for u, v, attrs in self.graph.edges.data():
-                attrs['width'] = 1.5
-                if u == self.curr and v == self.unsaved_node:
-                    attrs['style'] = 'dotted'
+            elif node == self.root:
+                node_attrs['color'] = self.ROOT_NODE_COLOR
 
-            for edge in self.adopts:
-                edge_attr = self.graph.edges[edge[0], edge[1]]
-                edge_attr['style'] = 'dashed'
+            elif node == self.head:
+                node_attrs['color'] = self.HEAD_NODE_COLOR
+
+            elif node == self.UNSAVED_NODE:
+                node_attrs['color'] = self.UNSAVED_NODE_COLOR
+
+            else:
+                node_attrs['color'] = self.DEFAULT_NODE_COLOR
+
+            node_attrs['size'] = self.get_node_size()
+
+        for u, v, attrs in self.graph.edges.data():
+            attrs['width'] = 1.5
+            if u == self.head and v == self.UNSAVED_NODE:
+                attrs['style'] = 'dotted'
+
+        for edge in self.adopts:
+            edge_attr = self.graph.edges[edge[0], edge[1]]
+            edge_attr['style'] = 'dashed'
 
     def get_node_size(self):
         if not self.pos_x and not self.pos_y:
-            return self.default_node_size
+            return self.DEFAULT_NODE_SIZE
 
-        x_cap = 10
-        y_cap = 20
+        x_capacity = 10
+        y_capacity = 20
         max_x = len(set(self.pos_x.values()))
         max_y = len(set(self.pos_y.values()))
-        if max_y < y_cap and max_x < x_cap:
-            return self.default_node_size
+        if max_y < y_capacity and max_x < x_capacity:
+            return self.DEFAULT_NODE_SIZE
 
-        adjusted_node_x_size = (1 - ((max_x - x_cap) * 0.03)) * self.default_node_size
-        adjusted_node_y_size = (1 - ((max_y - y_cap) * 0.01)) * self.default_node_size
+        adjusted_node_x_size = (1 - ((max_x - x_capacity) * 0.03)) * self.DEFAULT_NODE_SIZE
+        adjusted_node_y_size = (1 - ((max_y - y_capacity) * 0.01)) * self.DEFAULT_NODE_SIZE
 
         return max(30.0, min(adjusted_node_x_size, adjusted_node_y_size))
 
+    # Slot
     def pick_event(self, event):
-        if hasattr(event, 'nodes') and event.nodes and event.nodes[0] != self.curr:
-            self.switch_node_colors(event.nodes[0])
+        if event.mouseevent.button != MouseButton.LEFT:
+            return
+
+        if hasattr(event, 'nodes') and event.nodes and event.nodes[0] != self.head:
+            self.request_to_change_node.emit(event.nodes[0])
 
     def sequential_layout(self, graph):
         seq_layout = {}
+
+        # Build graph representation in 2D matrix form
         self.graph_matrix = [[None for _ in set(self.pos_y.values())] for _ in set(self.pos_x.values())]
 
         for key in graph.nodes.keys():
             seq_layout[key] = [self.get_pos_x_with_bias(key), self.get_pos_y_with_bias(key)]
-            self.graph_matrix[self.pos_x[key]][self.pos_y[key]] = key if key != self.unsaved_node else None
+            self.graph_matrix[self.pos_x[key]][self.pos_y[key]] = key if key != self.UNSAVED_NODE else None
 
         return seq_layout
 
     def get_pos_y_with_bias(self, key):
+        """
+        Bias is introduced to each node to center the graph on the canvas.
+
+        :param key: node
+        :return: positional value
+        """
         max_y = len(set(self.pos_y.values()))
         if max_y > 13:
             return self.pos_y[key]
@@ -196,6 +238,12 @@ class Timeline(QMainWindow):
             return self.pos_y[key] + (6 - ((max_y - 1) * 0.5))
 
     def get_pos_x_with_bias(self, key):
+        """
+        Bias is introduced to each node to center the graph on the canvas.
+
+        :param key: node
+        :return: positional value
+        """
         max_x = len(set(self.pos_x.values()))
         if max_x > 5:
             return self.pos_x[key]
@@ -225,29 +273,29 @@ class Timeline(QMainWindow):
         for child in children:
             self.pos_y[child] = self.pos_y[parent] + 1
 
-    def switch_node_colors(self, new_curr):
-        self.graph.nodes[new_curr]['color'] = self.curr_node_color
-        if self.curr == self.root:
-            self.graph.nodes[self.curr]['color'] = self.root_node_color
+    def switch_node_colors(self, new_head):
+        self.graph.nodes[new_head]['color'] = self.HEAD_NODE_COLOR
+        if self.head == self.root:
+            self.graph.nodes[self.head]['color'] = self.ROOT_NODE_COLOR
         else:
-            self.graph.nodes[self.curr]['color'] = self.intermediate_node_color
-        self.curr = new_curr
+            self.graph.nodes[self.head]['color'] = self.DEFAULT_NODE_COLOR
+        self.head = new_head
         self.refresh_graph()
 
     def move_up(self):
-        curr_pos_x = self.pos_x[self.curr]
-        curr_pos_y = self.pos_y[self.curr]
+        curr_pos_x = self.pos_x[self.head]
+        curr_pos_y = self.pos_y[self.head]
         if curr_pos_y + 1 < len(self.graph_matrix[0]):
             node = self.graph_matrix[curr_pos_x][curr_pos_y + 1]
             if node:
                 self.switch_node_colors(node)
 
     def move_down(self):
-        if self.curr == self.root:
+        if self.head == self.root:
             return
 
-        curr_pos_x = self.pos_x[self.curr]
-        curr_pos_y = self.pos_y[self.curr]
+        curr_pos_x = self.pos_x[self.head]
+        curr_pos_y = self.pos_y[self.head]
         curr_pos_y -= 1
 
         node = self.graph_matrix[curr_pos_x][curr_pos_y]
@@ -258,30 +306,30 @@ class Timeline(QMainWindow):
         self.switch_node_colors(node)
 
     def move_right(self):
-        row = self.pos_x[self.curr]
-        col = self.pos_y[self.curr]
+        col = self.pos_x[self.head]
+        row = self.pos_y[self.head]
 
         node = None
-        while row + 1 < len(self.graph_matrix) and not node:
-            row += 1
-            node = self.find_nearest_node_in_row(row, col)
+        while col + 1 < len(self.graph_matrix) and not node:
+            col += 1
+            node = self.find_nearest_node_in_col(col, row)
 
         if node:
             self.switch_node_colors(node)
 
     def move_left(self):
-        row = self.pos_x[self.curr]
-        col = self.pos_y[self.curr]
+        col = self.pos_x[self.head]
+        row = self.pos_y[self.head]
 
         node = None
-        while row - 1 >= 0 and not node:
-            row -= 1
-            node = self.find_nearest_node_in_row(row, col)
+        while col - 1 >= 0 and not node:
+            col -= 1
+            node = self.find_nearest_node_in_col(col, row)
 
         if node:
             self.switch_node_colors(node)
 
-    def find_nearest_node_in_row(self, row, col):
+    def find_nearest_node_in_col(self, row, col):
         node = self.graph_matrix[row][col]
         if node:
             return node
