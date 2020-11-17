@@ -17,7 +17,7 @@ class MenuBar(QMenuBar):
                 color: rgb(205,215,211);
                 spacing: 0px;
                 font: 17px;
-                min-height: 35px;
+                min-height: 30px;
             }
 
             QMenuBar::item {
@@ -25,7 +25,7 @@ class MenuBar(QMenuBar):
                 color: rgb(205,215,211);
                 spacing: 0px;
                 font: 17px;
-                min-height: 35px;
+                min-height: 30px;
 
                 padding-left: 10px;
                 padding-right: 10px;
@@ -36,7 +36,7 @@ class MenuBar(QMenuBar):
                 color: rgb(205,215,211);
                 spacing: 0px;
                 font: 17px;
-                min-height: 35px;
+                min-height: 30px;
                 
                 padding-left: 10px;
                 padding-right: 10px;
