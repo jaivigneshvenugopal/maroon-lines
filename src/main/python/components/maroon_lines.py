@@ -511,6 +511,7 @@ class MaroonLines(QMainWindow):
             self.undo_redo_key_pressed = False
             edit_mode = not self.file_content_did_not_change()
             self.render_timeline(edit_mode=edit_mode)
+            return
 
         if not file_modified:
             return
