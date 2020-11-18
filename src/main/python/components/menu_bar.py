@@ -16,16 +16,16 @@ class MenuBar(QMenuBar):
                 background-color: rgb(51, 51, 61);
                 color: rgb(205,215,211);
                 spacing: 0px;
-                font: 17px;
-                min-height: 30px;
+                font: 18px;
+                min-height: 32px;
             }
 
             QMenuBar::item {
                 background-color: rgb(51, 51, 61);
                 color: rgb(205,215,211);
                 spacing: 0px;
-                font: 17px;
-                min-height: 30px;
+                font: 18px;
+                min-height: 32px;
 
                 padding-left: 10px;
                 padding-right: 10px;
@@ -35,8 +35,8 @@ class MenuBar(QMenuBar):
                 background-color: rgb(60, 60, 60);
                 color: rgb(205,215,211);
                 spacing: 0px;
-                font: 17px;
-                min-height: 30px;
+                font: 18px;
+                min-height: 32px;
                 
                 padding-left: 10px;
                 padding-right: 10px;

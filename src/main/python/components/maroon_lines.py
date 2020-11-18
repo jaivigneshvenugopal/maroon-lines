@@ -82,6 +82,7 @@ class MaroonLines(QMainWindow):
         self.file_hash = None
 
         # Shortcuts and corresponding functions
+        self.undo_redo_key_pressed = False
         self.shortcut_arrow_functions = {
             Qt.Key_Up: self.timeline.move_up,
             Qt.Key_Down: self.timeline.move_down,
@@ -102,6 +103,10 @@ class MaroonLines(QMainWindow):
         Event filter for Editor to ignore certain shortcuts pertaining to Graph.
 
         """
+        if event.type() == QEvent.KeyPress and event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Z:
+            self.undo_redo_key_pressed = True
+            return False
+
         if event.type() != QEvent.KeyPress or event.modifiers() != Qt.AltModifier:
             return False
 
@@ -209,22 +214,22 @@ class MaroonLines(QMainWindow):
 
         self.status_bar_num_lines_label.setText('Lines: 1')
         self.status_bar_num_lines_label.setAlignment(Qt.AlignLeft)
-        self.status_bar_num_lines_label.setFont(QFont('Calibri', 13))
+        self.status_bar_num_lines_label.setFont(QFont('Calibri', 12))
         self.status_bar_num_lines_label.setStyleSheet("""padding-right: 2px; color: #CDD7D3;""")
 
         self.status_bar_num_nodes_label.setText('Versions: 1')
         self.status_bar_num_nodes_label.setAlignment(Qt.AlignRight)
-        self.status_bar_num_nodes_label.setFont(QFont('Calibri', 13))
+        self.status_bar_num_nodes_label.setFont(QFont('Calibri', 12))
         self.status_bar_num_nodes_label.setStyleSheet("""padding-right: 2px; color: #CDD7D3;""")
 
         self.status_bar_file_path_label.setText(self.file_name)
         self.status_bar_file_path_label.setAlignment(Qt.AlignCenter)
-        self.status_bar_file_path_label.setFont(QFont('Calibri', 13))
+        self.status_bar_file_path_label.setFont(QFont('Calibri', 12))
         self.status_bar_file_path_label.setStyleSheet("""padding-right: 2px; color: #CDD7D3;""")
 
         self.status_bar_curr_language_label.setText(self.editor.DEFAULT_LANGUAGE)
         self.status_bar_curr_language_label.setAlignment(Qt.AlignCenter)
-        self.status_bar_curr_language_label.setFont(QFont('Calibri', 13))
+        self.status_bar_curr_language_label.setFont(QFont('Calibri', 12))
         self.status_bar_curr_language_label.setStyleSheet("""padding-right: 2px; color: #CDD7D3;""")
 
         self.status_bar.addPermanentWidget(self.status_bar_num_lines_label, 10)
@@ -501,6 +506,11 @@ class MaroonLines(QMainWindow):
         """
         if not self.file_path or not self.file_hash:
             return
+
+        if self.undo_redo_key_pressed:
+            self.undo_redo_key_pressed = False
+            edit_mode = not self.file_content_did_not_change()
+            self.render_timeline(edit_mode=edit_mode)
 
         if not file_modified:
             return
