@@ -18,3 +18,4 @@ deb_prod/
 target/
 
 .python-version
+releases/
