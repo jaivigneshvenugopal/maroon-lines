@@ -1,4 +1,5 @@
 import sys
+import platform
 from random import random
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
@@ -107,8 +108,16 @@ class MaroonLines(QMainWindow):
             self.undo_redo_key_pressed = True
             return False
 
-        if event.type() != QEvent.KeyPress or event.modifiers() != Qt.AltModifier:
+        if event.type() != QEvent.KeyPress:
             return False
+
+        if platform.system() == 'Darwin':
+            if not (event.modifiers() & Qt.AltModifier and event.modifiers() & Qt.KeypadModifier):
+                return False
+
+        if platform.system() == 'Windows':
+            if not (event.modifiers() & Qt.AltModifier):
+                return False
 
         if not self.file_path or event.key() not in self.shortcut_arrow_functions:
             return False
@@ -214,22 +223,22 @@ class MaroonLines(QMainWindow):
 
         self.status_bar_num_lines_label.setText('Lines: 1')
         self.status_bar_num_lines_label.setAlignment(Qt.AlignLeft)
-        self.status_bar_num_lines_label.setFont(QFont('Calibri', 12))
+        self.status_bar_num_lines_label.setFont(QFont('Calibri', 13))
         self.status_bar_num_lines_label.setStyleSheet("""padding-right: 2px; color: #CDD7D3;""")
 
         self.status_bar_num_nodes_label.setText('Versions: 1')
         self.status_bar_num_nodes_label.setAlignment(Qt.AlignRight)
-        self.status_bar_num_nodes_label.setFont(QFont('Calibri', 12))
+        self.status_bar_num_nodes_label.setFont(QFont('Calibri', 13))
         self.status_bar_num_nodes_label.setStyleSheet("""padding-right: 2px; color: #CDD7D3;""")
 
         self.status_bar_file_path_label.setText(self.file_name)
         self.status_bar_file_path_label.setAlignment(Qt.AlignCenter)
-        self.status_bar_file_path_label.setFont(QFont('Calibri', 12))
+        self.status_bar_file_path_label.setFont(QFont('Calibri', 13))
         self.status_bar_file_path_label.setStyleSheet("""padding-right: 2px; color: #CDD7D3;""")
 
         self.status_bar_curr_language_label.setText(self.editor.DEFAULT_LANGUAGE)
         self.status_bar_curr_language_label.setAlignment(Qt.AlignCenter)
-        self.status_bar_curr_language_label.setFont(QFont('Calibri', 12))
+        self.status_bar_curr_language_label.setFont(QFont('Calibri', 13))
         self.status_bar_curr_language_label.setStyleSheet("""padding-right: 2px; color: #CDD7D3;""")
 
         self.status_bar.addPermanentWidget(self.status_bar_num_lines_label, 10)
