@@ -3,19 +3,10 @@ __pycache__/
 
 .idea/
 
-repos/
-
-build/
-
-dist/
-
-deb_dev/
-
-dev_prod/
-
-deb_prod/
-
 target/
 
+target_mac/
+
 .python-version
+
 releases/
