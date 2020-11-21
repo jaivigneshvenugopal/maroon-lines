@@ -1,4 +1,5 @@
 import sys
+import platform
 from random import random
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
@@ -11,6 +12,8 @@ from components.unsaved_content_dialog import UnsavedContentDialog
 from components.alert_dialog import AlertDialog
 from components.menu_bar import MenuBar
 
+from IPython import embed
+
 
 class MaroonLines(QMainWindow):
     """
@@ -18,7 +21,7 @@ class MaroonLines(QMainWindow):
 
     """
 
-    DEFAULT_FILE_NAME = 'untitled'
+    DEFAULT_FILE_NAME = 'Untitled'
 
     @property
     def file_path(self):
@@ -80,6 +83,7 @@ class MaroonLines(QMainWindow):
         self.file_hash = None
 
         # Shortcuts and corresponding functions
+        self.undo_redo_key_pressed = False
         self.shortcut_arrow_functions = {
             Qt.Key_Up: self.timeline.move_up,
             Qt.Key_Down: self.timeline.move_down,
@@ -100,8 +104,20 @@ class MaroonLines(QMainWindow):
         Event filter for Editor to ignore certain shortcuts pertaining to Graph.
 
         """
-        if event.type() != QEvent.KeyPress or event.modifiers() != Qt.AltModifier:
+        if event.type() == QEvent.KeyPress and event.modifiers() == Qt.ControlModifier and event.key() == Qt.Key_Z:
+            self.undo_redo_key_pressed = True
             return False
+
+        if event.type() != QEvent.KeyPress:
+            return False
+
+        if platform.system() == 'Darwin':
+            if not (event.modifiers() & Qt.AltModifier and event.modifiers() & Qt.KeypadModifier):
+                return False
+
+        if platform.system() == 'Windows':
+            if not (event.modifiers() & Qt.AltModifier):
+                return False
 
         if not self.file_path or event.key() not in self.shortcut_arrow_functions:
             return False
@@ -146,6 +162,8 @@ class MaroonLines(QMainWindow):
         Create all relevant actions necessary for a source code editor
 
         """
+        self.menu_bar.setFont(QFont('Calibri', 13))
+
         file_menu = self.menu_bar.addMenu('File')
         repo_menu = self.menu_bar.addMenu('Repo')
 
@@ -170,9 +188,9 @@ class MaroonLines(QMainWindow):
         exit_action.triggered.connect(self.handle_exit_action)
 
         # Development code - comment out during production
-        insert_test_text = file_menu.addAction('Insert Random Text and Save File')
-        insert_test_text.setShortcut("Ctrl+L")
-        insert_test_text.triggered.connect(self.handle_insert_action)
+        # insert_test_text = file_menu.addAction('Insert Random Text and Save File')
+        # insert_test_text.setShortcut("Ctrl+L")
+        # insert_test_text.triggered.connect(self.handle_insert_action)
 
         self.rename_move_action = repo_menu.addAction('Move/Rename')
         self.rename_move_action.setShortcut("Ctrl+M")
@@ -190,52 +208,38 @@ class MaroonLines(QMainWindow):
         1. Number of lines
         2. Language used
         3. File path of current file in session
-        4. Number of versions for current file in session
+        4. Number of deb_prod for current file in session
 
         """
         self.setStatusBar(self.status_bar)
         self.status_bar.setStyleSheet("""
-            QStatusBar {
-                background: #33333d;
-                color: #CDD7D3;
-                font: 17px;
-            }
-        """)
+                QStatusBar {
+                    background-color: #33333d; 
+                 }
+                 
+                 QStatusBar::item {
+                    border: 0px solid black;
+                }""")
 
         self.status_bar_num_lines_label.setText('Lines: 1')
         self.status_bar_num_lines_label.setAlignment(Qt.AlignLeft)
-        self.status_bar_num_lines_label.setStyleSheet("""
-            QLabel {
-                color: #CDD7D3;
-                padding-left: 2px;
-            }
-        """)
+        self.status_bar_num_lines_label.setFont(QFont('Calibri', 13))
+        self.status_bar_num_lines_label.setStyleSheet("""padding-right: 2px; color: #CDD7D3;""")
 
         self.status_bar_num_nodes_label.setText('Versions: 1')
         self.status_bar_num_nodes_label.setAlignment(Qt.AlignRight)
-        self.status_bar_num_nodes_label.setStyleSheet("""
-            QLabel {
-                color: #CDD7D3;
-                padding-right: 2px;
-            }
-        """)
+        self.status_bar_num_nodes_label.setFont(QFont('Calibri', 13))
+        self.status_bar_num_nodes_label.setStyleSheet("""padding-right: 2px; color: #CDD7D3;""")
 
         self.status_bar_file_path_label.setText(self.file_name)
         self.status_bar_file_path_label.setAlignment(Qt.AlignCenter)
-        self.status_bar_file_path_label.setStyleSheet("""
-            QLabel {
-                color: #CDD7D3;
-            }
-        """)
+        self.status_bar_file_path_label.setFont(QFont('Calibri', 13))
+        self.status_bar_file_path_label.setStyleSheet("""padding-right: 2px; color: #CDD7D3;""")
 
         self.status_bar_curr_language_label.setText(self.editor.DEFAULT_LANGUAGE)
-        self.status_bar_curr_language_label.setAlignment(Qt.AlignLeft)
-        self.status_bar_curr_language_label.setStyleSheet("""
-            QLabel {
-                color: #CDD7D3;
-                padding-right: 2px;
-            }
-        """)
+        self.status_bar_curr_language_label.setAlignment(Qt.AlignCenter)
+        self.status_bar_curr_language_label.setFont(QFont('Calibri', 13))
+        self.status_bar_curr_language_label.setStyleSheet("""padding-right: 2px; color: #CDD7D3;""")
 
         self.status_bar.addPermanentWidget(self.status_bar_num_lines_label, 10)
         self.status_bar.addPermanentWidget(self.status_bar_curr_language_label, 30)
@@ -416,9 +420,9 @@ class MaroonLines(QMainWindow):
         self.render_timeline(edit_mode=edit_mode)
 
     # Development code - comment out during production
-    def handle_insert_action(self):
-        self.editor.set_text(str(random()))
-        self.handle_save_action()
+    # def handle_insert_action(self):
+    #     self.editor.set_text(str(random()))
+    #     self.handle_save_action()
 
     def render_timeline(self, edit_mode=False):
         """
@@ -510,6 +514,12 @@ class MaroonLines(QMainWindow):
 
         """
         if not self.file_path or not self.file_hash:
+            return
+
+        if self.undo_redo_key_pressed:
+            self.undo_redo_key_pressed = False
+            edit_mode = not self.file_content_did_not_change()
+            self.render_timeline(edit_mode=edit_mode)
             return
 
         if not file_modified:

@@ -5,8 +5,17 @@ __pycache__/
 
 repos/
 
-test.py
+build/
 
-vig
+dist/
 
-ui.ui
+deb_dev/
+
+dev_prod/
+
+deb_prod/
+
+target/
+
+.python-version
+releases/

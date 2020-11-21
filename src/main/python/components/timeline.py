@@ -11,7 +11,7 @@ from IPython import embed
 
 class Timeline(QMainWindow):
     """
-    Graphical component of the editor that visualizes the various versions of a file.
+    Graphical component of the editor that visualizes the various deb_prod of a file.
 
     """
 

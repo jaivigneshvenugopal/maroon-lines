@@ -10,6 +10,7 @@ from pyqode.core import modes
 from pyqode.core import panels
 from pyqode.core.panels import LineNumberPanel as DefaultLineNumberPanel
 from pyqode.qt import QtWidgets
+from pyqode.python.modes import CommentsMode
 
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
@@ -57,7 +58,7 @@ class PyQodeEditor(CodeEdit):
     BACKGROUND_COLOR = '#fcfcfc'
 
     FONT_NAME = 'Source Code Pro'
-    FONT_SIZE = 12
+    FONT_SIZE = 14
 
     MIME = 'text/plain'
     ENCODING = 'utf-8'
@@ -68,7 +69,7 @@ class PyQodeEditor(CodeEdit):
         self.highlighter = None
 
         # Instantiate Components
-        self.configure_backend()
+        # self.configure_backend()
         self.configure_modes_and_panels()
         self.configure_font()
         self.configure_aesthetics()
@@ -85,6 +86,7 @@ class PyQodeEditor(CodeEdit):
         self.modes.append(modes.IndenterMode())
         self.modes.append(modes.AutoIndentMode())
         self.modes.append(modes.AutoCompleteMode())
+        self.modes.append(CommentsMode())
 
         # Panels
         self.panels.append(LineNumberPanel(), api.Panel.Position.LEFT)
@@ -95,7 +97,7 @@ class PyQodeEditor(CodeEdit):
         self.font_size = self.FONT_SIZE
 
     def configure_aesthetics(self):
-        self.setStyleSheet("background-color: {}".format(self.BACKGROUND_COLOR))
+        self.setStyleSheet("background-color: {}; border: 0px;".format(self.BACKGROUND_COLOR))
         self.configure_scrollbar_aesthetics()
 
     def configure_actions_and_shortcuts(self):

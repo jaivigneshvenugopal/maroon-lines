@@ -3,7 +3,13 @@ import os
 import zlib
 import json
 import shutil
+from PyQt5.QtCore import QStandardPaths
 from IPython import embed
+
+USE_APP_DATA_LOCATION = True
+
+APP_NAME = 'Maroon Lines'
+APP_DATA_LOCATION = QStandardPaths.writableLocation(QStandardPaths.AppDataLocation)
 
 REPOS = 'repos'
 KEY = 'key'
@@ -115,7 +121,11 @@ def repo_path(file_path):
     :return: Location of repo in string format
     """
     file_path_hash = get_hash(file_path)
-    return os.path.join(REPOS, file_path_hash[0:2], file_path_hash[2:])
+
+    if USE_APP_DATA_LOCATION:
+        return os.path.join(APP_DATA_LOCATION, APP_NAME, REPOS, file_path_hash[0:2], file_path_hash[2:])
+    else:
+        return os.path.join(REPOS, file_path_hash[0:2], file_path_hash[2:])
 
 
 def repo_key_path(file_path):
