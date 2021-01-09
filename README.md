@@ -8,6 +8,8 @@ One fine example would be code written for a leetcode/hacker-rank/kattis problem
 for a solution as git is more practical for projects. However, Maroon Lines paves a way for the programmer to store and view multiple solutions to a problem set in a single file, without requiring much effort at all. 
 
 ### Usage
+Download the installer for either Windows/MacOS under 'Releases' before beginning to use the software.
+
 #### Saving versions
 A file has to be in storage before versioning could begin. Using the 'Save' or 'Save As' functionality implicitly saves a snapshot of the current state of the file.
  
@@ -17,11 +19,11 @@ A file has to be in storage before versioning could begin. Using the 'Save' or '
 To access specific/previous versions, click on respective nodes or use the following shortcuts:
 ###### Windows
 ```
-Alt + Up/Down 
+Alt + Up/Down/Right/Down 
 ```
 ###### MacOS
 ```
-Option + Up/Down
+Option + Up/Down/Right/Down
 ```
 ![](assets/2.gif)
 
