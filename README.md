@@ -37,6 +37,10 @@ The versions are saved offline, which means that the versions exist even after t
 
 #### Bottlenecks
 Due to the way the application is designed, it is necessary to change the file's name or location only through the application. If not, renaming the file or moving it to a different location will break the link between the file and its history.
+
+#### Video Demo
+Watch [here](https://youtu.be/iPX9T3kSThg).
+
 ### Development
 #### Install Pyenv
 ###### Ubuntu/Debian
