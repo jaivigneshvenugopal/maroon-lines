@@ -1,14 +1,23 @@
 # Maroon Lines
 ### Introduction
 
-Maroon Lines: A source code editor with in-built version controlling.
+Maroon Lines is a source code editor with in-built version controlling.    
+    
+"Why not just use Git? That's the holy grail for version controlling!" - This is true. I believe so too. However, Git is more suited for projects. Maroon Lines tries to solve the problem of versioning for standalone files.     
+    
+Say you fire up your unregistered Sublime Text to solve a LeetCode or Kattis problem set. You write code to solve it, submit it and see it spectacularly fail. You go back to the drawing board to change your logic, and submit again. Fails again.   
+  
+You realise that the previous version was on the right track and just needed a little change. Unfortunately, you can't just jump back to a previous version - unless you had initialised a git repo, which you did not. Who would initialise a repository for a single file?    
+    
+Maroon Lines solves this problem by saving a version every time one saves his/her file. In addition, it also provides a intuitive way for the programmer to jump between versions easily - paving a way for one to store and view multiple solutions to a problem set in a single file.  
 
-The goal of Maroon Lines is to introduce implicit version controlling for single files that would not usually be in the shadows of git.
-One fine example would be code written for a leetcode/hacker-rank/kattis problem set. A programmer would generally not use git to save versions 
-for a solution as git is more practical for projects. However, Maroon Lines paves a way for the programmer to store and view multiple solutions to a problem set in a single file, without requiring much effort at all. 
-
-### Usage
-Download the installer for either Windows/MacOS under 'Releases' before beginning to use the software.
+### Usage  
+Download the installer for either Windows/MacOS [here](https://github.com/jaivigneshvenugopal/maroon-lines/releases) before beginning to use the software.  
+  
+The application opens like any other text-editor, however, its specialty raises its head when it starts saving content. Using the 'Save' or 'Save As' functionality implicitly saves a snapshot of the current state of the file.  
+  
+  
+Every node represents a version of the file, and no two nodes are alike.  
 
 #### Saving versions
 A file has to be in storage before versioning could begin. Using the 'Save' or 'Save As' functionality implicitly saves a snapshot of the current state of the file.
@@ -88,8 +97,8 @@ fbs freeze
 fbs installer
 ```
 ### Credits
-This application uses the following packages as primary building blocks:
-1. [pyQode](https://github.com/pyQode) 
-2. [NetworkX](https://networkx.org/)
-3. [Grave](https://github.com/networkx/grave)
-4. [PyQt5](https://www.riverbankcomputing.com/software/pyqt/)
+This desktop application was built using the following technologies:
+1. [**PyQt5**](https://pypi.org/project/PyQt5/) - Qt is set of cross-platform C++ libraries that implement high-level APIs for accessing many aspects of modern desktop and mobile systems. PyQt provides python bindings for Qt.
+2. [**pyQode**](https://github.com/pyQode) - Source code editor widget for PyQt/PySide
+3. [**NetworkX**](https://networkx.org/) - Python package for the creation, manipulation, and study of the structure, dynamics, and functions of complex networks.
+4. [**Grave**](https://github.com/networkx/grave) - Graph Visualization Package
