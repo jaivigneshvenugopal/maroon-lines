@@ -1,3 +1,5 @@
+<img src="/assets/logo.png">
+
 # Maroon Lines
 ### Introduction
 
